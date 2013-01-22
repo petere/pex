@@ -1,0 +1,287 @@
+#!/bin/sh
+
+usage="\
+pex is a PostgreSQL package manager.
+
+Usage:
+  pex audit [PACKAGE]...
+  pex cat PACKAGE
+  pex home PACKAGE
+  pex init
+  pex install PACKAGE
+  pex search SUBSTRING
+"
+
+set -eu
+
+: ${XDG_DATA_HOME=$HOME/.local/share}
+: ${XDG_CONFIG_HOME=$HOME/.config}
+: ${XDG_CACHE_HOME=$HOME/.cache}
+
+LC_COLLATE=C
+export LC_COLLATE
+
+error() {
+	echo "pex: $@" 1>&2
+	exit 1
+}
+
+output() {
+	echo "==> $@"
+}
+
+
+default_remote='git://github.com/petere/pex-packages.git'
+
+data_dir=$XDG_DATA_HOME/pex
+packages_dir=$data_dir/packages
+work_dir=$XDG_CACHE_HOME/pex
+
+
+if which gmake >/dev/null; then
+	gnumake=gmake
+else
+	gnumake=make
+fi
+
+
+cmd_audit() {
+	local pkg
+
+	if [ $# -gt 0 ]; then
+		for pkg; do
+			_audit_one "$pkg"
+		done
+	else
+		local all_packages=$(_all_packages)
+		for pkg in $all_packages; do
+			_audit_one "$pkg"
+		done
+	fi
+	output "Looks good"
+}
+
+
+cmd_cat() {
+	local package_file=$(_package_file "$1")
+	cat "$package_file"
+}
+
+
+cmd_home() {
+	local package_file=$(_package_file "$1")
+	local homepage=$(parse_yaml_field "$package_file" homepage)
+
+	_browser "$homepage"
+}
+
+
+cmd_init() {
+	local remote
+	if [ $# -gt 0 ]; then
+		remote=$1
+	else
+		remote=$default_remote
+	fi
+	mkdir -p "$data_dir"
+	(
+		cd "$data_dir"
+		git clone $remote packages
+	)
+}
+
+
+cmd_install() {
+	local pkg
+
+	for pkg in "$@"; do
+		_install_one "$pkg"
+	done
+}
+
+
+cmd_search() {
+	local string=$1
+
+	(
+		cd "$packages_dir"
+		ls -1 *"$string"*.yaml | sed 's/\.yaml$//' | sort
+	)
+}
+
+
+_all_packages() {
+	(
+		cd "$packages_dir"
+		ls -1 *.yaml | sed 's/\.yaml$//' | sort
+	)
+}
+
+
+_browser() {
+	local page=$1
+
+	set +u
+	if [ -n "$BROWSER" ]; then
+		$BROWSER "$page"
+	elif which xdg-open >/dev/null; then
+		xdg-open "$page"
+	elif [ $(uname -s) = 'Darwin' ]; then
+		open "$page"
+	elif which sensible-browser >/dev/null; then
+		sensible-browser "$page"
+	else
+		error "cannot find a suitable browser"
+	fi
+	set -u
+}
+
+
+_package_file() {
+	if [ ! -d "$packages_dir" ]; then
+		error "packages directory \"$packages_dir\" does not exist (Did you run \"pex init\"?)"
+	fi
+	echo "$packages_dir/$1.yaml"
+}
+
+
+_audit_one() {
+	local pkg=$1
+	output "Auditing $pkg"
+
+	local package_file=$(_package_file "$pkg")
+
+	perl -MYAML -e 'use YAML;YAML::LoadFile("'"$package_file"'")'
+	parse_yaml_field "$package_file" homepage >/dev/null
+	parse_yaml_field "$package_file" url >/dev/null
+	parse_yaml_field "$package_file" sha1 >/dev/null
+}
+
+
+_install_one() {
+	local pkg package_file url sha1
+
+	pkg=$1
+	package_file=$(_package_file "$pkg")
+	if [ ! -f "$package_file" ]; then
+		error "package file \"$package_file\" does not exist"
+	fi
+
+	url=$(parse_yaml_field "$package_file" url)
+	sha1=$(parse_yaml_field "$package_file" sha1)
+
+	mkdir -p "$work_dir"
+	rm -rf "$work_dir/$pkg"
+	mkdir "$work_dir/$pkg"
+	output "Downloading $pkg"
+	local ext=$(canonical_archive_extension "$url")
+	download "$url" "$work_dir/$pkg/$pkg.$ext"
+	downloaded_sha1=$(_sha1 "$work_dir/$pkg/$pkg.$ext")
+	if [ "$downloaded_sha1" != "$sha1" ]; then
+		error "SHA1 mismatch"
+	fi
+	(
+		cd "$work_dir/$pkg/"
+		output "Unpacking $pkg"
+		unpack "$pkg.$ext"
+		cd "$pkg"*  # FIXME
+		output "Building $pkg"
+		"$gnumake" all USE_PGXS=1
+		output "Installing $pkg"
+		"$gnumake" install USE_PGXS=1
+	)
+	output "Package $pkg installed successfully"
+}
+
+
+_sha1() {
+	sha1sum "$1" | cut -d ' ' -f 1
+}
+
+
+parse_yaml_field() {
+	local file=$1
+	local field=$2
+	local val
+
+	val=$(cat "$file" | sed -n -r "s/^${field}: *//p")
+
+	if [ -z "$val" ]; then
+		error "field \"$field\" missing in file \"$file\""
+	fi
+
+	echo "$val"
+}
+
+
+canonical_archive_extension() {
+	local file=$1
+
+	case $file in
+		*.zip)
+			echo "zip";;
+		*.tgz)
+			echo "tar.gz";;
+		*.tbz2)
+			echo "tar.bz2";;
+		*.tar.*)
+			echo "$file" | sed 's,^.*\.\(tar\..*\)$,\1,';;
+		*.git)
+			echo "git";;
+	esac
+}
+
+
+download() {
+	local url=$1
+	local target=$2
+	local ext=$(canonical_archive_extension "$target")
+
+	case $ext in
+		git)
+			git clone --depth=1 "$url" "$target";;
+		*)
+			curl --location -o "$target" "$url";;
+	esac
+}
+
+
+unpack() {
+	local file=$1
+	local ext=$(canonical_archive_extension "$file")
+
+        # FIXME: check directory structure
+	case $ext in
+		zip)
+			unzip "$file";;
+		tar.*)
+			tar xvf "$file";;
+		git)
+			;;
+		*)
+			error "unsupported archive format: $file";;
+	esac
+}
+
+
+command=$1
+shift
+
+case $command in
+	audit)
+		cmd_audit "$@";;
+	cat)
+		cmd_cat "$@";;
+	home)
+		cmd_home "$@";;
+	init)
+		cmd_init "$@";;
+	install)
+		cmd_install "$@";;
+	search)
+		cmd_search "$@";;
+	help|--help|-\?)
+		echo "$usage";;
+	*)
+		error "invalid command: $command";;
+esac
