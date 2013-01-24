@@ -10,6 +10,7 @@ Usage:
   pex init
   pex install PACKAGE
   pex search SUBSTRING
+  pex update [--rebase]
 "
 
 set -eu
@@ -106,6 +107,14 @@ cmd_search() {
 	(
 		cd "$packages_dir"
 		ls -1 *"$string"*.yaml | sed 's/\.yaml$//' | sort
+	)
+}
+
+
+cmd_update() {
+	(
+		cd "$packages_dir"
+		git pull "$@"
 	)
 }
 
@@ -280,6 +289,8 @@ case $command in
 		cmd_install "$@";;
 	search)
 		cmd_search "$@";;
+	update)
+		cmd_update "$@";;
 	help|--help|-\?)
 		echo "$usage";;
 	*)
