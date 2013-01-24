@@ -173,7 +173,7 @@ _install_one() {
 	mkdir -p "$work_dir"
 	rm -rf "$work_dir/$pkg"
 	mkdir "$work_dir/$pkg"
-	output "Downloading $pkg"
+	output "Downloading $pkg from $url"
 	local ext=$(canonical_archive_extension "$url")
 	download "$url" "$work_dir/$pkg/$pkg.$ext"
 	downloaded_sha1=$(_sha1 "$work_dir/$pkg/$pkg.$ext")
