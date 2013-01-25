@@ -6,6 +6,7 @@ pex is a PostgreSQL package manager.
 Usage:
   pex audit [PACKAGE]...
   pex cat PACKAGE
+  pex fetch PACKAGE...
   pex home PACKAGE
   pex init
   pex install PACKAGE
@@ -22,13 +23,15 @@ set -eu
 LC_COLLATE=C
 export LC_COLLATE
 
+exec 6>&1
+
 error() {
 	echo "pex: $@" 1>&2
 	exit 1
 }
 
 output() {
-	echo "==> $@"
+	echo "==> $@" 1>&6
 }
 
 
@@ -66,6 +69,15 @@ cmd_audit() {
 cmd_cat() {
 	local package_file=$(_package_file "$1")
 	cat "$package_file"
+}
+
+
+cmd_fetch() {
+	local pkg
+
+	for pkg; do
+		_fetch_one "$pkg" >/dev/null
+	done
 }
 
 
@@ -167,32 +179,41 @@ _audit_one() {
 }
 
 
-_install_one() {
-	local pkg package_file url sha1
+_fetch_one() {
+	local pkg=$1
 
-	pkg=$1
-	package_file=$(_package_file "$pkg")
+	local package_file=$(_package_file "$pkg")
 	if [ ! -f "$package_file" ]; then
 		error "package file \"$package_file\" does not exist"
 	fi
 
-	url=$(parse_yaml_field "$package_file" url)
-	sha1=$(parse_yaml_field "$package_file" sha1)
+	local url=$(parse_yaml_field "$package_file" url)
+	local sha1=$(parse_yaml_field "$package_file" sha1)
 
-	mkdir -p "$work_dir"
-	rm -rf "$work_dir/$pkg"
-	mkdir "$work_dir/$pkg"
-	output "Downloading $pkg from $url"
+	mkdir -p "$work_dir/$pkg/download"
 	local ext=$(canonical_archive_extension "$url")
-	download "$url" "$work_dir/$pkg/$pkg.$ext"
-	downloaded_sha1=$(_sha1 "$work_dir/$pkg/$pkg.$ext")
+	local target="$work_dir/$pkg/download/$pkg.$ext"
+	download "$url" "$target" "$sha1"
+	local downloaded_sha1=$(_sha1 "$target")
 	if [ "$downloaded_sha1" != "$sha1" ]; then
 		error "SHA1 mismatch"
 	fi
+	echo "$target"
+}
+
+
+_install_one() {
+	local pkg=$1
+
+	local target=$(_fetch_one "$pkg")
+
+	rm -rf "$work_dir/$pkg/build"
+	mkdir -p "$work_dir/$pkg/build"
+
 	(
-		cd "$work_dir/$pkg/"
+		cd "$work_dir/$pkg/build"
 		output "Unpacking $pkg"
-		unpack "$pkg.$ext"
+		unpack "$target"
 		cd "$pkg"*  # FIXME
 		output "Building $pkg"
 		"$gnumake" all USE_PGXS=1
@@ -244,7 +265,15 @@ canonical_archive_extension() {
 download() {
 	local url=$1
 	local target=$2
+	local sha1=$3
 	local ext=$(canonical_archive_extension "$target")
+
+	if [ -f "$target" ] && [ $(_sha1 "$target") = "$sha1" ]; then
+		output "Already downloaded $pkg"
+		return
+	fi
+
+	output "Downloading $pkg from $url"
 
 	case $ext in
 		git)
@@ -281,6 +310,8 @@ case $command in
 		cmd_audit "$@";;
 	cat)
 		cmd_cat "$@";;
+	fetch)
+		cmd_fetch "$@";;
 	home)
 		cmd_home "$@";;
 	init)
