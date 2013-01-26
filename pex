@@ -7,12 +7,15 @@ Usage:
   pex audit [PACKAGE]...
   pex cat PACKAGE
   pex fetch PACKAGE...
-  pex home PACKAGE
+  pex home [PACKAGE]
   pex init
   pex install PACKAGE
   pex search SUBSTRING
   pex update [--rebase]
 "
+
+PEX_HOMEPAGE='https://github.com/petere/pex'
+PEX_DEFAULT_REMOTE='git://github.com/petere/pex-packages.git'
 
 set -eu
 
@@ -34,8 +37,6 @@ output() {
 	echo "==> $@" 1>&6
 }
 
-
-default_remote='git://github.com/petere/pex-packages.git'
 
 data_dir=$XDG_DATA_HOME/pex
 packages_dir=$data_dir/packages
@@ -82,8 +83,12 @@ cmd_fetch() {
 
 
 cmd_home() {
-	local package_file=$(_package_file "$1")
-	local homepage=$(parse_yaml_field "$package_file" homepage)
+	if [ $# -gt 0 ]; then
+		local package_file=$(_package_file "$1")
+		local homepage=$(parse_yaml_field "$package_file" homepage)
+	else
+		local homepage=$PEX_HOMEPAGE
+	fi
 
 	_browser "$homepage"
 }
@@ -94,7 +99,7 @@ cmd_init() {
 	if [ $# -gt 0 ]; then
 		remote=$1
 	else
-		remote=$default_remote
+		remote=$PEX_DEFAULT_REMOTE
 	fi
 	mkdir -p "$data_dir"
 	(
