@@ -10,8 +10,10 @@ Usage:
   pex home [PACKAGE]
   pex init
   pex install PACKAGE
+  pex ls|list
   pex search SUBSTRING
   pex update [--rebase]
+  pex upgrade [PACKAGE]...
 "
 
 PEX_HOMEPAGE='https://github.com/petere/pex'
@@ -118,6 +120,19 @@ cmd_install() {
 }
 
 
+cmd_list() {
+	if [ ! -d "$installed_dir" ]; then
+		return
+	fi
+
+	(
+		cd "$installed_dir"
+		ls -1 *.yaml | sed 's/\.yaml$//' | sort
+	)
+
+}
+
+
 cmd_search() {
 	local string=$1
 
@@ -133,6 +148,21 @@ cmd_update() {
 		cd "$packages_dir"
 		git pull "$@"
 	)
+}
+
+
+cmd_upgrade() {
+	local pkg
+
+	if [ $# -gt 0 ]; then
+		for pkg; do
+			_upgrade_one "$pkg"
+		done
+	else
+		for pkg in $(cmd_list); do
+			_upgrade_one "$pkg"
+		done
+	fi
 }
 
 
@@ -211,6 +241,10 @@ _fetch_one() {
 _install_one() {
 	local pkg=$1
 
+	if [ -e "$installed_dir/$pkg.yaml" ]; then
+		error "package \"$pkg\" is already installed"
+	fi
+
 	local target=$(_fetch_one "$pkg")
 
 	rm -rf "$work_dir/$pkg/build"
@@ -227,6 +261,11 @@ _install_one() {
 		output "Installing $pkg"
 		"$gnumake" install USE_PGXS=1
 	)
+
+	local package_file=$(_package_file "$pkg")
+	mkdir -p "$installed_dir"
+	cp "$package_file" "$installed_dir/"
+
 	output "Package $pkg installed successfully"
 }
 
@@ -235,6 +274,26 @@ _sha1() {
 	sha1sum "$1" | cut -d ' ' -f 1
 }
 
+
+_upgrade_one() {
+	local pkg="$1"
+
+	if [ ! -e "$installed_dir/$pkg.yaml" ]; then
+		error "package \"$pkg\" is not installed"
+	fi
+
+	local package_file=$(_package_file "$pkg")
+
+	local installed_sha1=$(parse_yaml_field "$installed_dir/$pkg.yaml" sha1)
+	local new_sha1=$(parse_yaml_field "$package_file" sha1)
+
+	if [ "$installed_sha1" = "$new_sha1" ]; then
+		output "Package $pkg already up to date"
+		return
+	fi
+
+	_install_one "$pkg"
+}
 
 parse_yaml_field() {
 	local file=$1
@@ -325,6 +384,10 @@ EOF
 }
 
 
+pgsharedir=$(pg_config --sharedir)
+installed_dir=$pgsharedir/pex/installed
+
+
 command=$1
 shift
 
@@ -341,10 +404,14 @@ case $command in
 		cmd_init "$@";;
 	install)
 		cmd_install "$@";;
+	ls|list)
+		cmd_list "$@";;
 	search)
 		cmd_search "$@";;
 	update)
 		cmd_update "$@";;
+	upgrade)
+		cmd_upgrade "$@";;
 	help|--help|-\?)
 		echo "$usage";;
 	--cache)
