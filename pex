@@ -324,6 +324,10 @@ case $command in
 		cmd_update "$@";;
 	help|--help|-\?)
 		echo "$usage";;
+	--cache)
+		echo "$work_dir";;
+	--repo|--repository)
+		echo "$data_dir";;
 	*)
 		error "invalid command: $command";;
 esac
