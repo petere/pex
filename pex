@@ -191,6 +191,7 @@ _fetch_one() {
 	local sha1=$(parse_yaml_field "$package_file" sha1)
 
 	mkdir -p "$work_dir/$pkg/download"
+	write_cachedir_tag "$work_dir"
 	local ext=$(canonical_archive_extension "$url")
 	local target="$work_dir/$pkg/download/$pkg.$ext"
 	download "$url" "$target" "$sha1"
@@ -209,6 +210,7 @@ _install_one() {
 
 	rm -rf "$work_dir/$pkg/build"
 	mkdir -p "$work_dir/$pkg/build"
+	write_cachedir_tag "$work_dir"
 
 	(
 		cd "$work_dir/$pkg/build"
@@ -299,6 +301,22 @@ unpack() {
 		*)
 			error "unsupported archive format: $file";;
 	esac
+}
+
+
+write_cachedir_tag() {
+	local dir=$1
+
+	if [ -e "$dir/CACHEDIR.TAG" ]; then
+		return
+	fi
+
+	cat >$dir/CACHEDIR.TAG <<EOF
+Signature: 8a477f597d28d172789f06886806bc55
+# This file is a cache directory tag created by pex.
+# For information about cache directory tags, see:
+#	http://www.brynosaurus.com/cachedir/
+EOF
 }
 
 
