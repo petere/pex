@@ -10,6 +10,9 @@ MKDIR_P = mkdir -p
 
 all:
 
+check test:
+	prove
+
 maintainer-check:
 	$(SHELL) -n pex
 	checkbashisms pex
