@@ -345,7 +345,7 @@ download() {
 		git)
 			git clone --depth=1 "$url" "$target";;
 		*)
-			curl --location -o "$target" "$url";;
+			curl --progress-bar --location -o "$target" "$url";;
 	esac
 }
 
