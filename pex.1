@@ -1,0 +1,129 @@
+.TH PEX 1 2013 Pex pex
+.
+.SH NAME
+pex \- light-weight package manager for PostgreSQL
+.
+.SH SYNOPSIS
+\fBpex\fR \fIcommand\fR [\fIpackage\fR]...
+.
+.SH DESCRIPTION
+\fBpex\fR is an easy way to install add-on packages (extensions,
+loadable modules) into a PostgreSQL server.  \fBpex\fR downloads, builds, and installs the software.  Depending on the package, you need to run \fICREATE EXTENSION\fR and make any necessary configuration file changes manually.
+.
+.SH COMMANDS
+.TP
+\fBaudit\fR [\fIpackage\fR]...
+Check \fIpackage\fR description file (or all packages) for syntactical correctness and style issues.  Useful when creating new packages.
+.
+.TP
+\fBcat\fR \fIpackage\fR
+Print \fIpackage\fR description file to standard output.
+.
+.TP
+\fBfetch\fR \fIpackage\fR...
+Download source archive for \fIpackage\fR but don't install it.
+.
+.TP
+\fBhome\fR [\fIpackage\fR]
+Open home page of \fIpackage\fR in a browser.  Without argument, open the home page of Pex.
+.
+.TP
+\fBinit\fR
+Create directories for Pex and do the initial clone of the packages repository.  Call this just once before using \fBpex\fR.
+.
+.TP
+\fBinstall\fR \fIpackage\fR
+Download, build, and install \fIpackage\fR.
+.
+.TP
+\fBls\fR, \fBlist\fR
+List installed packages.
+.
+.TP
+\fBsearch\fR \fIsubstring\fR
+Search among available packages.
+.
+.TP
+\fBupdate\fR [\fB\-\-rebase\fR]
+Fetch newest package description files using Git.  If \fB\-\-rebase\fR is specified, \fBgit pull \-\-rebase\fR is used.
+.
+.TP
+\fBupgrade\fR [\fIpackage\fR]...
+Install latest version of \fIpackage\fR or all installed packages.
+.
+.TP
+\fB\-\-cache\fR
+Print location of cache directory (see also under FILES below).
+.
+.TP
+\fB\-\-help\fR
+Show help.
+.
+.TP
+\fB\-\-repository\fR
+Print location of Git repository with the package description files (see also under FILES below).
+.
+.SH ENVIRONMENT
+.TP
+BROWSER
+Web browser to use for opening package home pages.
+.TP
+XDG_CACHE_HOME, XDG_DATA_HOME
+Override locations for cache and data files.  See section FILES.
+.
+.SH FILES
+.TP
+\fI$XDG_CACHE_HOME/pex/\fR, default \fI~/.cache/pex/\fR
+Downloaded package archive files and build trees are stored under this directory.  You can remove things from here without too much concern.
+.
+.TP
+\fI$XDG_DATA_HOME/pex/\fR, default \fI~/.local/share/pex/\fR
+Package description files (normally a Git repository) are stored under this directory.
+.
+.TP
+$(pg_config --sharedir)\fI/pex/\fR
+This directory contains information about what packages are installed.  You can remove it if it bothers you, but then it is not possible to query what packages are installed, and the upgrade functionality won't know what to do.
+.
+.SH NOTES
+\fBpex\fR uses \fBcurl\fR and \fBgit\fR under the hood.  See there for information on how to set up proxy access and other details.
+.
+.SH BUGS
+For issues with \fBpex\fR itself, see \fIhttps://github\.com/petere/pex/issues\fR.
+
+For issues with package descriptions and for proposals for new packages, see \fIhttps://github\.com/petere/pex-packages/issues\fR.
+.
+.SH EXAMPLES
+Run this once:
+.RS
+pex init
+.RE
+
+Search for a package:
+.RS
+pex search hash
+.RE
+
+Install a package:
+.RS
+pex install pghashlib
+.RE
+
+Fetch new package descriptions:
+.RS
+pex update
+.RE
+
+Upgrade all installed packages:
+.RS
+pex upgrade
+.RE
+.
+.SH AUTHORS
+Peter Eisentraut
+.
+.SH "SEE ALSO"
+.BR curl (1),
+.BR git (1),
+.BR pg_config (1)
+
+Pex home page: \fIhttps://github\.com/petere/pex\fR
