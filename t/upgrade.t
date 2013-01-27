@@ -19,7 +19,8 @@ ok_program 'pex upgrade does nothing' 0 '==> Package foobar already up to date' 
 
 sed -i "s/foobar-1.0/foobar-1.1/;s/sha1:.*/sha1: $foobar11_sha1/" $tmpdir/home/.local/share/pex/packages/foobar.yaml
 
-ok 'pex upgrade runs' pex upgrade foobar
+pex upgrade foobar >/dev/null 2>&1
+ok 'pex upgrade runs' test $? -eq 0
 
 ok 'foobar-1.1 sha1 installed' grep -q $foobar11_sha1 $tmpdir/share/postgresql/pex/installed/foobar.yaml
 
