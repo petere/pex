@@ -138,7 +138,7 @@ cmd_search() {
 
 	(
 		cd "$packages_dir"
-		ls -1 *"$string"*.yaml | sed 's/\.yaml$//' | sort
+		ls -1 *"$string"*.yaml 2>/dev/null | sed 's/\.yaml$//' | sort
 	)
 }
 
