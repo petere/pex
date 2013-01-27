@@ -13,6 +13,13 @@ cleanup() {
 cd $tmpdir
 
 
+GIT_AUTHOR_NAME=Test
+GIT_AUTHOR_EMAIL=test@example.com
+GIT_COMMITTER_NAME=Test
+GIT_COMMITTER_EMAIL=test@example.com
+export GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
+
+
 # make mock directory structure
 
 mkdir -p bin lib/postgresql share/postgresql
