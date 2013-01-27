@@ -115,7 +115,7 @@ cmd_install() {
 	local pkg
 
 	for pkg in "$@"; do
-		_install_one "$pkg"
+		_install_one "$pkg" false
 	done
 }
 
@@ -240,8 +240,9 @@ _fetch_one() {
 
 _install_one() {
 	local pkg=$1
+	local allow_upgrade=$2
 
-	if [ -e "$installed_dir/$pkg.yaml" ]; then
+	if [ -e "$installed_dir/$pkg.yaml" ] && ! $allow_upgrade; then
 		error "package \"$pkg\" is already installed"
 	fi
 
@@ -292,7 +293,7 @@ _upgrade_one() {
 		return
 	fi
 
-	_install_one "$pkg"
+	_install_one "$pkg" true
 }
 
 parse_yaml_field() {
