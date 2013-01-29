@@ -127,7 +127,7 @@ cmd_list() {
 
 	(
 		cd "$installed_dir"
-		ls -1 *.yaml | sed 's/\.yaml$//' | sort
+		ls -1 *.yaml 2>/dev/null | sed 's/\.yaml$//' | sort
 	)
 
 }
@@ -169,7 +169,7 @@ cmd_upgrade() {
 _all_packages() {
 	(
 		cd "$packages_dir"
-		ls -1 *.yaml | sed 's/\.yaml$//' | sort
+		ls -1 *.yaml 2>/dev/null | sed 's/\.yaml$//' | sort
 	)
 }
 
