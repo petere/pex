@@ -11,6 +11,7 @@ Usage:
   pex init
   pex install PACKAGE
   pex ls|list
+  pex outdated
   pex search SUBSTRING
   pex update [--rebase]
   pex upgrade [PACKAGE]...
@@ -130,6 +131,29 @@ cmd_list() {
 		ls -1 *.yaml 2>/dev/null | sed 's/\.yaml$//' | sort
 	)
 
+}
+
+
+cmd_outdated() {
+	local installed_file
+
+	if [ ! -d "$installed_dir" ]; then
+		return
+	fi
+
+	for installed_file in $(find "$installed_dir" -name "*.yaml" -print); do
+		local pkg=$(basename "$installed_file" | sed 's/\.yaml$//')
+		local installed_sha1=$(parse_yaml_field "$installed_file" sha1)
+		local available_file=$(_package_file "$pkg")
+		if [ -e "$available_file" ]; then
+			local available_sha1=$(parse_yaml_field "$available_file" sha1)
+			if [ "$installed_sha1" != "$available_sha1" ]; then
+				echo "$pkg"
+			fi
+		else
+			echo "$pkg"
+		fi
+	done
 }
 
 
@@ -407,6 +431,8 @@ case $command in
 		cmd_install "$@";;
 	ls|list)
 		cmd_list "$@";;
+	outdated)
+		cmd_outdated "$@";;
 	search)
 		cmd_search "$@";;
 	update)
