@@ -16,7 +16,7 @@ sed -i 's/example.com/example.net/' foobar.yaml
 git commit -m 'Test update' foobar.yaml
 cd -
 
-pex update
+pex update 2>/dev/null
 
 ok 'new package available' grep -q 'example.net' "$HOME/.local/share/pex/packages/foobar.yaml"
 
