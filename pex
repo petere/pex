@@ -8,6 +8,7 @@ Usage:
   pex cat PACKAGE
   pex fetch PACKAGE...
   pex home [PACKAGE]
+  pex info PACKAGE...
   pex init
   pex install PACKAGE
   pex ls|list
@@ -97,6 +98,15 @@ cmd_home() {
 }
 
 
+cmd_info() {
+	local pkg
+
+	for pkg; do
+		_info_one "$pkg"
+	done
+}
+
+
 cmd_init() {
 	local remote
 	if [ $# -gt 0 ]; then
@@ -143,14 +153,7 @@ cmd_outdated() {
 
 	for installed_file in $(find "$installed_dir" -name "*.yaml" -print); do
 		local pkg=$(basename "$installed_file" | sed 's/\.yaml$//')
-		local installed_sha1=$(parse_yaml_field "$installed_file" sha1)
-		local available_file=$(_package_file "$pkg")
-		if [ -e "$available_file" ]; then
-			local available_sha1=$(parse_yaml_field "$available_file" sha1)
-			if [ "$installed_sha1" != "$available_sha1" ]; then
-				echo "$pkg"
-			fi
-		else
+		if _is_outdated "$pkg"; then
 			echo "$pkg"
 		fi
 	done
@@ -262,6 +265,33 @@ _fetch_one() {
 }
 
 
+_info_one() {
+	local pkg=$1
+
+	local package_file=$(_package_file "$pkg")
+	if [ ! -f "$package_file" ]; then
+		error "package file \"$package_file\" does not exist"
+	fi
+
+	local homepage=$(parse_yaml_field "$package_file" homepage)
+	local url=$(parse_yaml_field "$package_file" url)
+
+	local status
+	if [ ! -e "$installed_dir/$pkg.yaml" ]; then
+		status='not installed'
+	elif _is_outdated "$pkg"; then
+		status='outdated'
+	else
+		status='installed'
+	fi
+
+	echo "$pkg"
+	echo "homepage: $homepage"
+	echo "url: $url"
+	echo "status: $status"
+}
+
+
 _install_one() {
 	local pkg=$1
 	local allow_upgrade=$2
@@ -292,6 +322,24 @@ _install_one() {
 	cp "$package_file" "$installed_dir/"
 
 	output "Package $pkg installed successfully"
+}
+
+
+_is_outdated() {
+	local pkg=$1
+	local installed_file=$installed_dir/$pkg.yaml
+
+	local installed_sha1=$(parse_yaml_field "$installed_file" sha1)
+	local available_file=$(_package_file "$pkg")
+	if [ -e "$available_file" ]; then
+		local available_sha1=$(parse_yaml_field "$available_file" sha1)
+		if [ "$installed_sha1" != "$available_sha1" ]; then
+			return 0
+		fi
+	else
+		return 0
+	fi
+	return 1
 }
 
 
@@ -425,6 +473,8 @@ case $command in
 		cmd_fetch "$@";;
 	home)
 		cmd_home "$@";;
+	info)
+		cmd_info "$@";;
 	init)
 		cmd_init "$@";;
 	install)
