@@ -207,10 +207,10 @@ _browser() {
 	set +u
 	if [ -n "$BROWSER" ]; then
 		$BROWSER "$page"
-	elif which xdg-open >/dev/null; then
-		xdg-open "$page"
 	elif [ $(uname -s) = 'Darwin' ]; then
 		open "$page"
+	elif which xdg-open >/dev/null; then
+		xdg-open "$page"
 	elif which sensible-browser >/dev/null; then
 		sensible-browser "$page"
 	else
