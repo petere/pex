@@ -22,7 +22,7 @@ export GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
 
 # make mock directory structure
 
-mkdir -p bin lib/postgresql share/postgresql
+mkdir -p bin lib/postgresql share/postgresql data
 
 cp $srcdir/pex bin/
 
@@ -31,16 +31,25 @@ cat <<EOF >bin/pg_config
 echo $tmpdir/share/postgresql
 EOF
 
-chmod a+x bin/pg_config
+cat <<EOF >bin/psql
+echo $tmpdir/data
+echo \$0 "\$*" 1>&2
+EOF
+
+chmod a+x bin/pg_config bin/psql
 
 PATH=$tmpdir/bin:$PATH
+
+cat <<EOF >data/postmaster.opts
+$tmpdir/bin/postgres "-D" "$tmpdir/data"
+EOF
 
 
 # make mock source tarball to download
 
 mkdir -p scratch/foobar-1.0
 cat <<EOF >scratch/foobar-1.0/Makefile
-all: ; true
+all: ; echo PG_CONFIG=\$(PG_CONFIG)
 install: ; echo foobar >$tmpdir/lib/postgresql/foobar.so
 EOF
 

@@ -312,9 +312,9 @@ _install_one() {
 		unpack "$target"
 		cd "$pkg"*  # FIXME
 		output "Building $pkg"
-		"$gnumake" all USE_PGXS=1
+		"$gnumake" all USE_PGXS=1 PG_CONFIG="$pg_config"
 		output "Installing $pkg"
-		"$gnumake" install USE_PGXS=1
+		"$gnumake" install USE_PGXS=1 PG_CONFIG="$pg_config"
 	)
 
 	local package_file=$(_package_file "$pkg")
@@ -457,7 +457,67 @@ EOF
 }
 
 
-pgsharedir=$(pg_config --sharedir)
+_pg_config_from_datadir() {
+	cat "$1/postmaster.opts" | awk '{ print $1 }' | sed 's,/postgres$,/pg_config,'
+}
+
+
+psql() {
+	command psql -X "$@"
+}
+
+
+case $1 in
+	--help|-\?)
+		echo "$usage"; exit 0;;
+	--cache)
+		echo "$work_dir"; exit 0;;
+	--repo|--repository)
+		echo "$data_dir"; exit 0;;
+esac
+
+
+pg_config=
+
+while getopts 'd:Dg:Gp:P' opt; do
+	case $opt in
+		g)
+			if [ -d "$OPTARG" ] && [ -e "$OPTARG/bin/pg_config" ]; then
+				pg_config=$OPTARG/bin/pg_config
+			elif [ -d "$OPTARG" ] && [ -e "$OPTARG/pg_config" ]; then
+				pg_config=$OPTARG/pg_config
+			else
+				pg_config=$OPTARG
+			fi
+			;;
+		G)
+			pg_config=
+			;;
+		d)
+			pg_config=$(_pg_config_from_datadir "$OPTARG")
+			;;
+		D)
+			pg_config=$(_pg_config_from_datadir "$PGDATA")
+			;;
+		p)
+			pg_config=$(_pg_config_from_datadir $(psql -At -p "$OPTARG" -c 'show data_directory'))
+			;;
+		P)
+			pg_config=$(_pg_config_from_datadir $(psql -At -c 'show data_directory'))
+			;;
+		*)
+			exit 1
+			;;
+	esac
+done
+
+shift $(($OPTIND - 1))
+
+if [ -z "$pg_config" ]; then
+	pg_config=pg_config
+fi
+
+pgsharedir=$("$pg_config" --sharedir)
 installed_dir=$pgsharedir/pex/installed
 
 
@@ -489,12 +549,8 @@ case $command in
 		cmd_update "$@";;
 	upgrade)
 		cmd_upgrade "$@";;
-	help|--help|-\?)
+	help)
 		echo "$usage";;
-	--cache)
-		echo "$work_dir";;
-	--repo|--repository)
-		echo "$data_dir";;
 	*)
 		error "invalid command: $command";;
 esac

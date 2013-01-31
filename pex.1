@@ -59,6 +59,38 @@ Fetch newest package description files using Git.  If \fB\-\-rebase\fR is specif
 \fBupgrade\fR [\fIpackage\fR]...
 Install latest version of \fIpackage\fR or all installed packages.
 .
+.SH OPTIONS
+.SS "Choosing a PostgreSQL Instance"
+\fBpex\fR supports managing multiple PostgreSQL installations.  For example, you could have several major versions installed, or installations with different build options.  The build processes of PostgreSQL extension packages generally locate the target installation by looking for the \fBpg_config\fR program associated with the installation.  \fBpex\fR provides several ways to specify which installation to use.
+
+Note that \fBpex\fR only deals with PostgreSQL \fIinstallations\fR, not \fIinstances\fR.  It only cares about file system locations for installing program, library, and data files.  It does not do anything in the PostgreSQL data directory, and it does not make any changes in a running database instance.
+.
+.TP
+\fB\-d\fR \fIdatadir\fR
+Use PostgreSQL installation running on this data directory.  \fBpex\fR looks inside the data directory for the file system location of the binary that serves that data directory.  This only works if the server has been started on this data directory at least once.  And it requires read access to the data directory.
+.
+.TP
+\fB\-D\fR
+Use PostgreSQL installation running on default data directory, otherwise like \fB-d\fR (only works if PGDATA environment variable is set).
+.
+.TP
+\fB\-g\fR \fIpath\fR
+Use PostgreSQL installation in this location.  \fIpath\fR can be either the full path to the \fBpg_config\fR program (e.g., \fI/usr/local/pgsql/bin/pg_config\fR) or the bin directory (e.g., \fI/usr/local/pgsql/bin\fR) or the root directory of the installation (e.g., \fI/usr/local/pgsql\fR), if the \fBpg_config\fR program is installed in the standard place thereunder.
+.
+.TP
+\fB\-G\fR
+Use PostgreSQL installation in the default location.  This is the default behavior.  \fBpg_config\fR will be located by relying on the shell's search path.
+.
+.TP
+\fB\-p\fR \fIport\fR
+Use PostgreSQL installation running on this port.  \fBpex\fR connects to the local PostgreSQL instance at the given port, determines the data directory, and then proceeds like \fB\-d\fR.
+.
+.TP
+\fB\-P\fR
+Use PostgreSQL installation running on the default port (whatever \fBpsql\fR and libpq think is the default).  You can also use this if you have a very strange configuration (for example, multiple instances using different Unix-domain sockets but the same port): Specify connection options using libpq environment variables and use the \fB\-P\fR option to tell \fBpex\fR to get the data directory by connecting to a running PostgreSQL instances.
+.
+.SS "Global Options"
+These options are only processed when they are the sole command-line argument.
 .TP
 \fB\-\-cache\fR
 Print location of cache directory (see also under FILES below).
@@ -124,6 +156,15 @@ pex update
 Upgrade all installed packages:
 .RS
 pex upgrade
+.RE
+
+Install a package into several PostgreSQL installations:
+.RS
+pex -p 5432 install pghashlib
+.br
+pex -p 5433 install pghashlib
+.br
+pex -p 5433 install pghashlib
 .RE
 .
 .SH AUTHORS
