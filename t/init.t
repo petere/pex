@@ -12,6 +12,6 @@ ok 'pex init succeeds' pex init $test_repo_url
 
 ok_program 'pex --cache output' 0 "$tmpdir/home/.cache/pex" pex --cache
 
-ok_program 'pex --repository output' 0 "$tmpdir/home/.local/share/pex" pex --repository
+ok_program 'pex --repository output' 0 "$tmpdir/home/.local/share/pex/packages" pex --repository
 
 cleanup

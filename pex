@@ -473,7 +473,7 @@ case $1 in
 	--cache)
 		echo "$work_dir"; exit 0;;
 	--repo|--repository)
-		echo "$data_dir"; exit 0;;
+		echo "$packages_dir"; exit 0;;
 esac
 
 
