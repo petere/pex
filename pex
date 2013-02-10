@@ -375,7 +375,7 @@ parse_yaml_field() {
 	local field=$2
 	local val
 
-	val=$(cat "$file" | sed -n -r "s/^${field}: *//p")
+	val=$(cat "$file" | sed -n "s/^${field}: *//p")
 
 	if [ -z "$val" ]; then
 		error "field \"$field\" missing in file \"$file\""
