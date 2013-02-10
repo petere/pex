@@ -517,6 +517,12 @@ shift $(($OPTIND - 1))
 
 if [ -z "$pg_config" ]; then
 	pg_config=pg_config
+else
+	# convert to absolute path
+	_pg_config_dir=$(dirname "$pg_config")
+	_pg_config_base=$(basename "$pg_config")
+	_pg_config_dir=$(cd "$_pg_config_dir" && pwd)
+	pg_config=$_pg_config_dir/$_pg_config_base
 fi
 
 pgsharedir=$("$pg_config" --sharedir)

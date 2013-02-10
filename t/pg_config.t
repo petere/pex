@@ -3,7 +3,9 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 9
+mydir=$PWD
+
+plan 10
 
 pex init $test_repo_url
 
@@ -30,6 +32,13 @@ rm -rf $tmpdir/share/postgresql/pex/installed/
 
 pex -g $tmpdir/bin/pg_config install foobar >stdout.out 2>/dev/null
 ok 'option -g with full path works' grep -q "PG_CONFIG=$tmpdir/bin/pg_config" stdout.out
+
+rm -rf $tmpdir/share/postgresql/pex/installed/
+
+cd $tmpdir
+pex -g bin/pg_config install foobar >$mydir/stdout.out 2>/dev/null
+ok 'option -g with relative path works' grep -q "PG_CONFIG=$tmpdir/bin/pg_config" $mydir/stdout.out
+cd $mydir
 
 
 diag '-d option'
