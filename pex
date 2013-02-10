@@ -314,6 +314,12 @@ _install_one() {
 		unpack "$target"
 		cd "$pkg"*  # FIXME
 		output "Building $pkg"
+		if [ -x configure ]; then
+			./configure \
+				--bindir=$("$pg_config" --bindir) \
+				--includedir=$("$pg_config" --includedir) \
+				--libdir=$("$pg_config" --libdir)
+		fi
 		"$gnumake" all USE_PGXS=1 PG_CONFIG="$pg_config"
 		output "Installing $pkg"
 		"$gnumake" install USE_PGXS=1 PG_CONFIG="$pg_config"
