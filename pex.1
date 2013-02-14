@@ -20,6 +20,10 @@ Check \fIpackage\fR description file (or all packages) for syntactical correctne
 Print \fIpackage\fR description file to standard output.
 .
 .TP
+\fBedit\fR [\fIpackage\fR]...
+Open \fIpackage\fR description file (or all packages) in editor.
+.
+.TP
 \fBfetch\fR \fIpackage\fR...
 Download source archive for \fIpackage\fR but don't install it.
 .
@@ -107,6 +111,9 @@ Print location of Git repository with the package description files (see also un
 .TP
 BROWSER
 Web browser to use for opening package home pages.
+.TP
+EDITOR
+Text editor to use.
 .TP
 XDG_CACHE_HOME, XDG_DATA_HOME
 Override locations for cache and data files.  See section FILES.

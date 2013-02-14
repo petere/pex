@@ -6,6 +6,7 @@ pex is a PostgreSQL package manager.
 Usage:
   pex audit [PACKAGE]...
   pex cat PACKAGE
+  pex edit [PACKAGE]...
   pex fetch PACKAGE...
   pex home [PACKAGE]
   pex info PACKAGE...
@@ -74,6 +75,18 @@ cmd_audit() {
 cmd_cat() {
 	local package_file=$(_package_file "$1")
 	cat "$package_file"
+}
+
+
+cmd_edit() {
+	_editor $(
+		if [ $# -eq 0 ]; then
+			set $(cmd_search)
+		fi
+		for pkg; do
+			_package_file "$pkg"
+		done
+	)
 }
 
 
@@ -217,6 +230,19 @@ _browser() {
 		sensible-browser "$page"
 	else
 		error "cannot find a suitable browser"
+	fi
+	set -u
+}
+
+
+_editor() {
+	set +u
+	if [ -n "$EDITOR" ]; then
+		$EDITOR "$@"
+	elif which sensible-editor >/dev/null; then
+		sensible-editor "$@"
+	else
+		vi "$@"
 	fi
 	set -u
 }
@@ -543,6 +569,8 @@ case $command in
 		cmd_audit "$@";;
 	cat)
 		cmd_cat "$@";;
+	edit)
+		cmd_edit "$@";;
 	fetch)
 		cmd_fetch "$@";;
 	home)
