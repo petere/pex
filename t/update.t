@@ -12,7 +12,7 @@ ok 'pex update runs' pex update
 ok 'old package available' grep -q 'example.com' "$HOME/.local/share/pex/packages/foobar.yaml"
 
 cd $tmpdir/repo
-sed -i 's/example.com/example.net/' foobar.yaml
+sed_in_place 's/example.com/example.net/' foobar.yaml
 git commit -m 'Test update' foobar.yaml
 cd -
 

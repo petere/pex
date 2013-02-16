@@ -84,4 +84,11 @@ mkdir -p home
 HOME=$tmpdir/home
 
 
+sed_in_place() {
+	local pattern="$1"
+	local file="$2"
+
+	sed "$pattern" "$file" >"$file".new && mv "$file.new" "$file"
+}
+
 set +e
