@@ -186,9 +186,19 @@ cmd_search() {
 
 
 cmd_update() {
+	local changes
 	(
 		cd "$packages_dir"
-		git pull "$@"
+		git pull -n "$@"
+		changes=$(git diff ORIG_HEAD..HEAD --name-status *.yaml | sed 's/\.yaml$//')
+		if echo "$changes" | grep -q '^A'; then
+			output "New packages"
+			echo "$changes" | sed -n 's/^A[[:space:]]*//p' | sort
+		fi
+		if echo "$changes" | grep -q '^M'; then
+			output "Updated packages"
+			echo "$changes" | sed -n 's/^M[[:space:]]*//p' | sort
+		fi
 	)
 }
 
