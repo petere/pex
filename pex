@@ -42,6 +42,18 @@ output() {
 	echo "==> $@" 1>&6
 }
 
+assert() {
+	if test "$@"; then
+		:
+	else
+		if test -n "$BASH"; then
+			error "assertion failed: $@ (${FUNCNAME[1]})"
+		else
+			error "assertion failed: $@"
+		fi
+	fi
+}
+
 
 data_dir=$XDG_DATA_HOME/pex
 packages_dir=$data_dir/packages
@@ -219,6 +231,7 @@ cmd_upgrade() {
 
 
 _all_packages() {
+	assert $# -eq 0
 	(
 		cd "$packages_dir"
 		ls -1 *.yaml 2>/dev/null | sed 's/\.yaml$//' | sort
@@ -227,6 +240,7 @@ _all_packages() {
 
 
 _browser() {
+	assert $# -eq 1
 	local page=$1
 
 	set +u
@@ -246,6 +260,8 @@ _browser() {
 
 
 _editor() {
+	assert $# -gt 0
+
 	set +u
 	if [ -n "$EDITOR" ]; then
 		$EDITOR "$@"
@@ -259,6 +275,8 @@ _editor() {
 
 
 _package_file() {
+	assert $# -eq 1
+
 	if [ ! -d "$packages_dir" ]; then
 		error "packages directory \"$packages_dir\" does not exist (Did you run \"pex init\"?)"
 	fi
@@ -267,6 +285,7 @@ _package_file() {
 
 
 _audit_one() {
+	assert $# -eq 1
 	local pkg=$1
 	output "Auditing $pkg"
 
@@ -280,6 +299,7 @@ _audit_one() {
 
 
 _fetch_one() {
+	assert $# -eq 1
 	local pkg=$1
 
 	local package_file=$(_package_file "$pkg")
@@ -304,6 +324,7 @@ _fetch_one() {
 
 
 _info_one() {
+	assert $# -eq 1
 	local pkg=$1
 
 	local package_file=$(_package_file "$pkg")
@@ -331,6 +352,7 @@ _info_one() {
 
 
 _install_one() {
+	assert $# -eq 2
 	local pkg=$1
 	local allow_upgrade=$2
 
@@ -370,6 +392,7 @@ _install_one() {
 
 
 _is_outdated() {
+	assert $# -eq 1
 	local pkg=$1
 	local installed_file=$installed_dir/$pkg.yaml
 
@@ -388,11 +411,13 @@ _is_outdated() {
 
 
 _sha1() {
+	assert $# -eq 1
 	sha1sum "$1" | cut -d ' ' -f 1
 }
 
 
 _upgrade_one() {
+	assert $# -eq 1
 	local pkg="$1"
 
 	if [ ! -e "$installed_dir/$pkg.yaml" ]; then
@@ -412,7 +437,9 @@ _upgrade_one() {
 	_install_one "$pkg" true
 }
 
+
 parse_yaml_field() {
+	assert $# -eq 2
 	local file=$1
 	local field=$2
 	local val
@@ -428,6 +455,7 @@ parse_yaml_field() {
 
 
 canonical_archive_extension() {
+	assert $# -eq 1
 	local file=$1
 
 	case $file in
@@ -446,6 +474,7 @@ canonical_archive_extension() {
 
 
 download() {
+	assert $# -eq 3
 	local url=$1
 	local target=$2
 	local sha1=$3
@@ -468,6 +497,7 @@ download() {
 
 
 unpack() {
+	assert $# -eq 1
 	local file=$1
 	local ext=$(canonical_archive_extension "$file")
 
@@ -486,6 +516,8 @@ unpack() {
 
 
 write_cachedir_tag() {
+	assert $# -eq 1
+
 	local dir=$1
 
 	if [ -e "$dir/CACHEDIR.TAG" ]; then
@@ -502,6 +534,7 @@ EOF
 
 
 _pg_config_from_datadir() {
+	assert $# -eq 1
 	cat "$1/postmaster.opts" | awk '{ print $1 }' | sed 's,/postgres$,/pg_config,'
 }
 
