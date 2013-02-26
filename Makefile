@@ -15,7 +15,6 @@ check test:
 
 maintainer-check:
 	$(SHELL) -n pex
-	checkbashisms pex
 	lexgrog pex.1 >/dev/null
 	man --warnings=w -l pex.1 >/dev/null
 
