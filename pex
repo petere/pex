@@ -5,12 +5,12 @@ pex is a PostgreSQL package manager.
 
 Usage:
   pex audit [PACKAGE]...
-  pex cat PACKAGE
+  pex cat PACKAGE...
   pex edit [PACKAGE]...
   pex fetch PACKAGE...
-  pex home [PACKAGE]
+  pex home [PACKAGE]...
   pex info PACKAGE...
-  pex init
+  pex init [REPO]
   pex install PACKAGE
   pex ls|list
   pex outdated
@@ -46,6 +46,7 @@ assert() {
 	if test "$@"; then
 		:
 	else
+		set +u
 		if test -n "$BASH"; then
 			error "assertion failed: $@ (${FUNCNAME[1]})"
 		else
@@ -85,8 +86,16 @@ cmd_audit() {
 
 
 cmd_cat() {
-	local package_file=$(_package_file "$1")
-	cat "$package_file"
+	if [ $# -eq 0 ]; then
+		error '"cat" takes at least one argument'
+	fi
+
+	local pkg
+
+	for pkg; do
+		local package_file=$(_package_file "$pkg")
+		cat "$package_file"
+	done
 }
 
 
@@ -112,18 +121,27 @@ cmd_fetch() {
 
 
 cmd_home() {
+	local homepages=''
 	if [ $# -gt 0 ]; then
-		local package_file=$(_package_file "$1")
-		local homepage=$(parse_yaml_field "$package_file" homepage)
+		local pkg
+		for pkg; do
+			local package_file=$(_package_file "$pkg")
+			local homepage=$(parse_yaml_field "$package_file" homepage)
+			homepages="$homepages $homepage"
+		done
 	else
-		local homepage=$PEX_HOMEPAGE
+		local homepages=$PEX_HOMEPAGE
 	fi
 
-	_browser "$homepage"
+	_browser $homepages
 }
 
 
 cmd_info() {
+	if [ $# -eq 0 ]; then
+		error '"info" takes at least one argument'
+	fi
+
 	local pkg
 
 	for pkg; do
@@ -134,10 +152,12 @@ cmd_info() {
 
 cmd_init() {
 	local remote
-	if [ $# -gt 0 ]; then
+	if [ $# -eq 0 ]; then
+		remote=$PEX_DEFAULT_REMOTE
+	elif [ $# -eq 1 ]; then
 		remote=$1
 	else
-		remote=$PEX_DEFAULT_REMOTE
+		error '"init" takes zero or one arguments'
 	fi
 	mkdir -p "$data_dir"
 	(
@@ -157,6 +177,10 @@ cmd_install() {
 
 
 cmd_list() {
+	if [ $# -gt 0 ]; then
+		error '"list" takes no arguments'
+	fi
+
 	if [ ! -d "$installed_dir" ]; then
 		return
 	fi
@@ -170,6 +194,10 @@ cmd_list() {
 
 
 cmd_outdated() {
+	if [ $# -gt 0 ]; then
+		error '"outdated" takes no arguments'
+	fi
+
 	local installed_file
 
 	if [ ! -d "$installed_dir" ]; then
@@ -186,6 +214,9 @@ cmd_outdated() {
 
 
 cmd_search() {
+	if [ $# -gt 1 ]; then
+		error '"search" takes zero or one arguments'
+	fi
 	(
 		cd "$packages_dir"
 		if [ $# -gt 0 ]; then
@@ -240,18 +271,17 @@ _all_packages() {
 
 
 _browser() {
-	assert $# -eq 1
-	local page=$1
+	assert $# -ge 1
 
 	set +u
 	if [ -n "$BROWSER" ]; then
-		$BROWSER "$page"
+		$BROWSER "$@"
 	elif [ $(uname -s) = 'Darwin' ]; then
-		open "$page"
+		open "$@"
 	elif which xdg-open >/dev/null; then
-		xdg-open "$page"
+		xdg-open "$@"
 	elif which sensible-browser >/dev/null; then
-		sensible-browser "$page"
+		sensible-browser "$@"
 	else
 		error "cannot find a suitable browser"
 	fi

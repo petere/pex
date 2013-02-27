@@ -3,10 +3,12 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 4
+plan 5
 
 pex update >/dev/null 2>&1
 ok 'pex update before init fails' test $? -ne 0
+
+ok_program 'pex init with too many arguments fails' 1 'pex: "init" takes zero or one arguments' pex init blah blah
 
 ok 'pex init succeeds' pex init $test_repo_url
 

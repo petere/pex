@@ -16,7 +16,7 @@ loadable modules) into a PostgreSQL server.  \fBpex\fR downloads, builds, and in
 Check \fIpackage\fR description file (or all packages) for syntactical correctness and style issues.  Useful when creating new packages.
 .
 .TP
-\fBcat\fR \fIpackage\fR
+\fBcat\fR \fIpackage\fR...
 Print \fIpackage\fR description file to standard output.
 .
 .TP
@@ -28,16 +28,16 @@ Open \fIpackage\fR description file (or all packages) in editor.
 Download source archive for \fIpackage\fR but don't install it.
 .
 .TP
-\fBhome\fR [\fIpackage\fR]
-Open home page of \fIpackage\fR in a browser.  Without argument, open the home page of Pex.
+\fBhome\fR [\fIpackage\fR]...
+Open home page of \fIpackage\fR in a browser.  (Not all browsers can open more than one page at once.)  Without argument, open the home page of Pex.
 .
 .TP
 \fBinfo\fR \fIpackage\fR...
 Show information about \fIpackage\fR.
 .
 .TP
-\fBinit\fR
-Create directories for Pex and do the initial clone of the packages repository.  Call this just once before using \fBpex\fR.
+\fBinit\fR [\fIrepository\fR]
+Create directories for Pex and do the initial clone of the packages repository.  Call this just once before using \fBpex\fR.  A nondefault Git repository for package descriptions can optionally be specified.
 .
 .TP
 \fBinstall\fR \fIpackage\fR
