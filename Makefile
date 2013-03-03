@@ -8,10 +8,12 @@ INSTALL_DATA = $(INSTALL) -m 644
 INSTALL_SCRIPT = $(INSTALL) -m 755
 MKDIR_P = mkdir -p
 
+PROVE = prove
+
 all:
 
 check test:
-	prove
+	$(PROVE) $(PROVEFLAGS)
 
 maintainer-check:
 	$(SHELL) -n pex

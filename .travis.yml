@@ -1,4 +1,4 @@
 language: c  # whatever
 before_install: sudo apt-get update
 install: sudo apt-get install -qq --no-install-recommends curl devscripts git libyaml-perl man-db perl
-script: make all maintainer-check check && sudo make install && sudo make uninstall
+script: make all maintainer-check check PROVEFLAGS=-v && sudo make install && sudo make uninstall
