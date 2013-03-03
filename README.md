@@ -61,7 +61,7 @@ The package files are in YAML format.  But note that the files are parsed by a s
 There are three required fields:
 
 * `homepage`: A location that can be opened in a web browser to learn about the package.
-* `url`: A location that curl can download and either tar or zip can unpackage to get the package source.
+* `url`: A location that curl can download and either tar or zip can unpack to get the package source.
 * `sha1`: The SHA1 hash of the downloaded archive.
 
 Use `pex audit` to check the package file for syntax and other errors. Note that this requires Perl and the YAML module.
