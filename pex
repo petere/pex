@@ -6,6 +6,7 @@ pex is a PostgreSQL package manager.
 Usage:
   pex audit [PACKAGE]...
   pex cat PACKAGE...
+  pex create -n NAME URL
   pex edit [PACKAGE]...
   pex fetch PACKAGE...
   pex home [PACKAGE]...
@@ -108,6 +109,47 @@ cmd_edit() {
 			_package_file "$pkg"
 		done
 	)
+}
+
+
+cmd_create() {
+	local pkg=''
+
+	while getopts 'n:' opt; do
+		case $opt in
+			n)
+				pkg=$OPTARG;;
+			*)
+				exit 1;;
+		esac
+	done
+	shift $(($OPTIND - 1))
+
+	if [ $# -ne 1 ]; then
+		error '"create" takes exactly one nonoption argument'
+	fi
+
+	# TODO: optionally autodetect name
+	if [ -z "$pkg" ]; then
+		error "name must be specified (-n)"
+	fi
+
+	if [ -e "$packages_dir/$pkg.yaml" ]; then
+		error "package \"$pkg\" already exists (use \"pex edit\" to change it)"
+	fi
+
+	local url=$1
+	local target=$(_download_target "$pkg" "$url")
+	download "$url" "$target"
+	local downloaded_sha1=$(_sha1 "$target")
+	local package_file=$(_package_file "$pkg")
+	cat <<EOF >"$package_file"
+homepage: FIXME
+url: $url
+sha1: $downloaded_sha1
+EOF
+	cmd_edit "$pkg"
+	echo "Use \"pex audit $pkg\" to check the package description."
 }
 
 
@@ -322,9 +364,13 @@ _audit_one() {
 	local package_file=$(_package_file "$pkg")
 
 	perl -MYAML -e 'use YAML;YAML::LoadFile("'"$package_file"'")'
-	parse_yaml_field "$package_file" homepage >/dev/null
+	local homepage=$(parse_yaml_field "$package_file" homepage)
 	parse_yaml_field "$package_file" url >/dev/null
 	parse_yaml_field "$package_file" sha1 >/dev/null
+
+	if [ "$homepage" = FIXME ] || [ -z "$homepage" ]; then
+		error "homepage field not filled in correctly"
+	fi
 }
 
 
@@ -340,16 +386,31 @@ _fetch_one() {
 	local url=$(parse_yaml_field "$package_file" url)
 	local sha1=$(parse_yaml_field "$package_file" sha1)
 
-	mkdir -p "$work_dir/$pkg/download"
-	write_cachedir_tag "$work_dir"
-	local ext=$(canonical_archive_extension "$url")
-	local target="$work_dir/$pkg/download/$pkg.$ext"
-	download "$url" "$target" "$sha1"
-	local downloaded_sha1=$(_sha1 "$target")
-	if [ "$downloaded_sha1" != "$sha1" ]; then
-		error "SHA1 mismatch"
+	local target=$(_download_target "$pkg" "$url")
+
+	if [ -f "$target" ] && [ $(_sha1 "$target") = "$sha1" ]; then
+		output "Already downloaded $pkg"
+	else
+		download "$url" "$target"
+		local downloaded_sha1=$(_sha1 "$target")
+		if [ "$downloaded_sha1" != "$sha1" ]; then
+			error "SHA1 mismatch"
+		fi
 	fi
 	echo "$target"
+}
+
+
+_download_target() {
+	assert $# -eq 2
+	local pkg=$1
+	local url=$2
+
+	mkdir -p "$work_dir/$pkg/download"
+	write_cachedir_tag "$work_dir"
+
+	local ext=$(canonical_archive_extension "$url")
+	echo "$work_dir/$pkg/download/$pkg.$ext"
 }
 
 
@@ -504,16 +565,10 @@ canonical_archive_extension() {
 
 
 download() {
-	assert $# -eq 3
+	assert $# -eq 2
 	local url=$1
 	local target=$2
-	local sha1=$3
 	local ext=$(canonical_archive_extension "$target")
-
-	if [ -f "$target" ] && [ $(_sha1 "$target") = "$sha1" ]; then
-		output "Already downloaded $pkg"
-		return
-	fi
 
 	output "Downloading $pkg from $url"
 
@@ -642,6 +697,8 @@ case $command in
 		cmd_audit "$@";;
 	cat)
 		cmd_cat "$@";;
+	create)
+		cmd_create "$@";;
 	edit)
 		cmd_edit "$@";;
 	fetch)
