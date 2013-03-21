@@ -36,7 +36,12 @@ echo $tmpdir/data
 echo \$0 "\$*" 1>&2
 EOF
 
-chmod a+x bin/pg_config bin/psql
+cat <<EOF >bin/sudo
+#!/bin/sh
+echo SUDO "\$@"
+EOF
+
+chmod a+x bin/*
 
 PATH=$tmpdir/bin:$PATH
 

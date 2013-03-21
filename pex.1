@@ -97,6 +97,11 @@ Use PostgreSQL installation running on this port.  \fBpex\fR connects to the loc
 \fB\-P\fR
 Use PostgreSQL installation running on the default port (whatever \fBpsql\fR and libpq think is the default).  You can also use this if you have a very strange configuration (for example, multiple instances using different Unix-domain sockets but the same port): Specify connection options using libpq environment variables and use the \fB\-P\fR option to tell \fBpex\fR to get the data directory by connecting to a running PostgreSQL instance.
 .
+.SS "Other Options"
+.TP
+\fB\-S\fR
+When installing a package, run the actual installation part (but not the downloading, building, etc.) under \fBsudo\fR.  You might need to use this if you run \fBpex\fR as an unprivileged user but want to install into the system installation of PostgreSQL.  (Alternatively, you could run \fBpex\fR itself under \fBsudo\fR or something similar, but then the downloading and building also runs with higher privileges, which might be less desirable.)
+.
 .SS "Global Options"
 These options are only processed when they are the sole command-line argument.
 .TP

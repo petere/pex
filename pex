@@ -472,12 +472,12 @@ _install_one() {
 		fi
 		"$gnumake" all USE_PGXS=1 PG_CONFIG="$pg_config"
 		output "Installing $pkg"
-		"$gnumake" install USE_PGXS=1 PG_CONFIG="$pg_config"
+		$sudo "$gnumake" install USE_PGXS=1 PG_CONFIG="$pg_config"
 	)
 
 	local package_file=$(_package_file "$pkg")
-	mkdir -p "$installed_dir"
-	cp "$package_file" "$installed_dir/"
+	$sudo mkdir -p "$installed_dir"
+	$sudo cp "$package_file" "$installed_dir/"
 
 	output "Package $pkg installed successfully"
 }
@@ -641,8 +641,9 @@ esac
 
 
 pg_config=
+sudo=
 
-while getopts 'd:Dg:Gp:P' opt; do
+while getopts 'd:Dg:Gp:PS' opt; do
 	case $opt in
 		g)
 			if [ -d "$OPTARG" ] && [ -e "$OPTARG/bin/pg_config" ]; then
@@ -667,6 +668,9 @@ while getopts 'd:Dg:Gp:P' opt; do
 			;;
 		P)
 			pg_config=$(_pg_config_from_datadir $(psql -At -c 'show data_directory'))
+			;;
+		S)
+			sudo=sudo
 			;;
 		*)
 			exit 1

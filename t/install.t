@@ -3,7 +3,7 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 7
+plan 8
 
 ok 'pex init succeeds' pex init $test_repo_url
 
@@ -20,5 +20,9 @@ ok 'package file was installed' test -s $tmpdir/lib/postgresql/foobar.so
 
 pex install foobar  >/dev/null 2>&1
 ok 'second installation fails' test $? -ne 0
+
+rm $tmpdir/share/postgresql/pex/installed/foobar.yaml
+pex -S install foobar >stdout.out
+ok 'installation with "sudo"' grep -q SUDO stdout.out
 
 cleanup
