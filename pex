@@ -418,7 +418,7 @@ _fetch_one() {
 		download "$url" "$target"
 		local downloaded_sha1=$(_sha1 "$target")
 		if [ "$downloaded_sha1" != "$sha1" ]; then
-			error "SHA1 mismatch"
+			error "SHA1 mismatch\nExpected: $sha1\nActual: $downloaded_sha1"
 		fi
 	fi
 	echo "$target"
