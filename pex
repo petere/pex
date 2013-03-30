@@ -15,6 +15,7 @@ Usage:
   pex install PACKAGE
   pex ls|list
   pex outdated
+  pex repotest
   pex search [SUBSTRING]
   pex update [--rebase]
   pex upgrade [PACKAGE]...
@@ -252,6 +253,28 @@ cmd_outdated() {
 			echo "$pkg"
 		fi
 	done
+}
+
+
+cmd_repotest() {
+	set $(cmd_search)
+	echo "1..$#"
+	local i out pkg ret
+	ret=0
+	i=0
+	for pkg; do
+		i=$(($i + 1))
+		status=0
+		out=$(_fetch_one "$pkg" 2>&1 6>&1) || status=$?
+		if [ $status -eq 0 ]; then
+			echo "ok $i $pkg"
+		else
+			echo "not ok $i $pkg"
+			echo "$out" | grep -E -v '#+ 100\.0%' | sed 's/^/    # /'
+			ret=1
+		fi
+	done
+	exit $ret
 }
 
 
@@ -720,6 +743,8 @@ case $command in
 		cmd_list "$@";;
 	outdated)
 		cmd_outdated "$@";;
+	repotest)
+		cmd_repotest "$@";;
 	search)
 		cmd_search "$@";;
 	update)
