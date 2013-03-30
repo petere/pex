@@ -11,6 +11,6 @@ EDITOR=echo
 export EDITOR
 
 ok_program 'pex edit works' 0 "$HOME/.local/share/pex/packages/foobar.yaml" pex edit foobar
-ok_program 'pex edit works' 0 "$HOME/.local/share/pex/packages/foobar.yaml" pex edit
+ok_program 'pex edit works' 0 "$HOME/.local/share/pex/packages/foobar.yaml $HOME/.local/share/pex/packages/zoobar.yaml" pex edit
 
 cleanup

@@ -50,7 +50,7 @@ $tmpdir/bin/postgres "-D" "$tmpdir/data"
 EOF
 
 
-# make mock source tarball to download
+# make mock source tarballs to download
 
 mkdir -p scratch/foobar-1.0
 cat <<EOF >scratch/foobar-1.0/Makefile
@@ -65,12 +65,23 @@ cp -R scratch/foobar-1.0 scratch/foobar-1.1
 tar -C scratch -c -z -f scratch/foobar-1.1.tar.gz foobar-1.1/
 foobar11_sha1=$(sha1sum scratch/foobar-1.1.tar.gz | cut -d ' ' -f 1)
 
+mkdir -p scratch/zoobar-1.0
+cat <<EOF >scratch/zoobar-1.0/Makefile
+all: ; echo PG_CONFIG=\$(PG_CONFIG)
+install: ; echo zoobar >$tmpdir/lib/postgresql/zoobar.so
+EOF
+
+tar -C scratch -c -z -f scratch/zoobar-1.0.tar.gz zoobar-1.0/
+zoobar10_sha1=$(sha1sum scratch/zoobar-1.0.tar.gz | cut -d ' ' -f 1)
+
+
 
 # make mock repo to clone
 
 mkdir -p repo
 cd repo
 git init
+
 cat <<EOF >foobar.yaml
 homepage: http://www.example.com/
 url: file://$tmpdir/scratch/foobar-1.0.tar.gz
@@ -78,6 +89,15 @@ sha1: $foobar10_sha1
 EOF
 git add foobar.yaml
 git commit -m 'Add foobar package'
+
+cat <<EOF >zoobar.yaml
+homepage: http://www.example.net/
+url: file://$tmpdir/scratch/zoobar-1.0.tar.gz
+sha1: $zoobar10_sha1
+EOF
+git add zoobar.yaml
+git commit -m 'Add zoobar package'
+
 cd ..
 
 test_repo_url=$tmpdir/repo

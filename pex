@@ -78,7 +78,8 @@ cmd_audit() {
 			_audit_one "$pkg"
 		done
 	else
-		local all_packages=$(_all_packages)
+		local all_packages
+		all_packages=$(_all_packages)
 		for pkg in $all_packages; do
 			_audit_one "$pkg"
 		done
