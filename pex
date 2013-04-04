@@ -102,14 +102,19 @@ cmd_cat() {
 
 
 cmd_edit() {
-	_editor $(
-		if [ $# -eq 0 ]; then
-			set $(cmd_search)
-		fi
-		for pkg; do
-			_package_file "$pkg"
-		done
-	)
+	local file files
+
+	files=''
+
+	if [ $# -eq 0 ]; then
+		set $(cmd_search)
+	fi
+	for pkg; do
+		file=$(_package_file "$pkg")
+		files="$files $file"
+	done
+
+	_editor $files
 }
 
 
@@ -145,7 +150,7 @@ cmd_create() {
 	target=$(_download_target "$pkg" "$url")
 	download "$url" "$target"
 	downloaded_sha1=$(_sha1 "$target")
-	package_file=$(_package_file "$pkg")
+	package_file=$(_package_file "$pkg" true)
 	cat <<EOF >"$package_file"
 homepage: FIXME
 url: $url
@@ -376,12 +381,23 @@ _editor() {
 
 
 _package_file() {
-	assert $# -eq 1
+	local filename pkg ignore_missing
+
+	assert $# -eq 1 -o $# -eq 2
+	pkg=$1
+	ignore_missing=false
+	if [ $# -ge 2 ]; then
+		ignore_missing=$2
+	fi
 
 	if [ ! -d "$packages_dir" ]; then
 		error "packages directory \"$packages_dir\" does not exist (Did you run \"pex init\"?)"
 	fi
-	echo "$packages_dir/$1.yaml"
+	filename="$packages_dir/$pkg.yaml"
+	if [ ! -f "$filename" ] && ! $ignore_missing; then
+		error "package \"$pkg\" does not exist"
+	fi
+	echo "$filename"
 }
 
 
