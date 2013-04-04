@@ -71,14 +71,13 @@ fi
 
 
 cmd_audit() {
-	local pkg
+	local pkg all_packages
 
 	if [ $# -gt 0 ]; then
 		for pkg; do
 			_audit_one "$pkg"
 		done
 	else
-		local all_packages
 		all_packages=$(_all_packages)
 		for pkg in $all_packages; do
 			_audit_one "$pkg"
@@ -89,14 +88,14 @@ cmd_audit() {
 
 
 cmd_cat() {
+	local pkg package_file
+
 	if [ $# -eq 0 ]; then
 		error '"cat" takes at least one argument'
 	fi
 
-	local pkg
-
 	for pkg; do
-		local package_file=$(_package_file "$pkg")
+		package_file=$(_package_file "$pkg")
 		cat "$package_file"
 	done
 }
@@ -115,7 +114,9 @@ cmd_edit() {
 
 
 cmd_create() {
-	local pkg=''
+	local downloaded_sha1 package_file pkg target url
+
+	pkg=''
 
 	while getopts 'n:' opt; do
 		case $opt in
@@ -140,11 +141,11 @@ cmd_create() {
 		error "package \"$pkg\" already exists (use \"pex edit\" to change it)"
 	fi
 
-	local url=$1
-	local target=$(_download_target "$pkg" "$url")
+	url=$1
+	target=$(_download_target "$pkg" "$url")
 	download "$url" "$target"
-	local downloaded_sha1=$(_sha1 "$target")
-	local package_file=$(_package_file "$pkg")
+	downloaded_sha1=$(_sha1 "$target")
+	package_file=$(_package_file "$pkg")
 	cat <<EOF >"$package_file"
 homepage: FIXME
 url: $url
@@ -165,16 +166,18 @@ cmd_fetch() {
 
 
 cmd_home() {
-	local homepages=''
+	local homepage homepages package_file pkg
+
+	homepages=''
+
 	if [ $# -gt 0 ]; then
-		local pkg
 		for pkg; do
-			local package_file=$(_package_file "$pkg")
-			local homepage=$(parse_yaml_field "$package_file" homepage)
+			package_file=$(_package_file "$pkg")
+			homepage=$(parse_yaml_field "$package_file" homepage)
 			homepages="$homepages $homepage"
 		done
 	else
-		local homepages=$PEX_HOMEPAGE
+		homepages=$PEX_HOMEPAGE
 	fi
 
 	_browser $homepages
@@ -182,11 +185,11 @@ cmd_home() {
 
 
 cmd_info() {
+	local pkg
+
 	if [ $# -eq 0 ]; then
 		error '"info" takes at least one argument'
 	fi
-
-	local pkg
 
 	for pkg; do
 		_info_one "$pkg"
@@ -196,6 +199,7 @@ cmd_info() {
 
 cmd_init() {
 	local remote
+
 	if [ $# -eq 0 ]; then
 		remote=$PEX_DEFAULT_REMOTE
 	elif [ $# -eq 1 ]; then
@@ -238,18 +242,18 @@ cmd_list() {
 
 
 cmd_outdated() {
+	local installed_file pkg
+
 	if [ $# -gt 0 ]; then
 		error '"outdated" takes no arguments'
 	fi
-
-	local installed_file
 
 	if [ ! -d "$installed_dir" ]; then
 		return
 	fi
 
 	for installed_file in $(find "$installed_dir" -name "*.yaml" -print); do
-		local pkg=$(basename "$installed_file" | sed 's/\.yaml$//')
+		pkg=$(basename "$installed_file" | sed 's/\.yaml$//')
 		if _is_outdated "$pkg"; then
 			echo "$pkg"
 		fi
@@ -258,9 +262,10 @@ cmd_outdated() {
 
 
 cmd_repotest() {
+	local i out pkg ret
+
 	set $(cmd_search)
 	echo "1..$#"
-	local i out pkg ret
 	ret=0
 	i=0
 	for pkg; do
@@ -381,14 +386,16 @@ _package_file() {
 
 
 _audit_one() {
+	local homepage package_file pkg
+
 	assert $# -eq 1
-	local pkg=$1
+	pkg=$1
 	output "Auditing $pkg"
 
-	local package_file=$(_package_file "$pkg")
+	package_file=$(_package_file "$pkg")
 
 	perl -MYAML -e 'use YAML;YAML::LoadFile("'"$package_file"'")'
-	local homepage=$(parse_yaml_field "$package_file" homepage)
+	homepage=$(parse_yaml_field "$package_file" homepage)
 	parse_yaml_field "$package_file" url >/dev/null
 	parse_yaml_field "$package_file" sha1 >/dev/null
 
@@ -399,24 +406,26 @@ _audit_one() {
 
 
 _fetch_one() {
-	assert $# -eq 1
-	local pkg=$1
+	local downloaded_sha1 package_file pkg sha1 target url
 
-	local package_file=$(_package_file "$pkg")
+	assert $# -eq 1
+	pkg=$1
+
+	package_file=$(_package_file "$pkg")
 	if [ ! -f "$package_file" ]; then
 		error "package file \"$package_file\" does not exist"
 	fi
 
-	local url=$(parse_yaml_field "$package_file" url)
-	local sha1=$(parse_yaml_field "$package_file" sha1)
+	url=$(parse_yaml_field "$package_file" url)
+	sha1=$(parse_yaml_field "$package_file" sha1)
 
-	local target=$(_download_target "$pkg" "$url")
+	target=$(_download_target "$pkg" "$url")
 
 	if [ -f "$target" ] && [ $(_sha1 "$target") = "$sha1" ]; then
 		output "Already downloaded $pkg"
 	else
 		download "$url" "$target"
-		local downloaded_sha1=$(_sha1 "$target")
+		downloaded_sha1=$(_sha1 "$target")
 		if [ "$downloaded_sha1" != "$sha1" ]; then
 			error "SHA1 mismatch\nExpected: $sha1\nActual: $downloaded_sha1"
 		fi
@@ -426,31 +435,34 @@ _fetch_one() {
 
 
 _download_target() {
+	local ext pkg url
+
 	assert $# -eq 2
-	local pkg=$1
-	local url=$2
+	pkg=$1
+	url=$2
 
 	mkdir -p "$work_dir/$pkg/download"
 	write_cachedir_tag "$work_dir"
 
-	local ext=$(canonical_archive_extension "$url")
+	ext=$(canonical_archive_extension "$url")
 	echo "$work_dir/$pkg/download/$pkg.$ext"
 }
 
 
 _info_one() {
-	assert $# -eq 1
-	local pkg=$1
+	local homepage package_file pkg status url
 
-	local package_file=$(_package_file "$pkg")
+	assert $# -eq 1
+	pkg=$1
+
+	package_file=$(_package_file "$pkg")
 	if [ ! -f "$package_file" ]; then
 		error "package file \"$package_file\" does not exist"
 	fi
 
-	local homepage=$(parse_yaml_field "$package_file" homepage)
-	local url=$(parse_yaml_field "$package_file" url)
+	homepage=$(parse_yaml_field "$package_file" homepage)
+	url=$(parse_yaml_field "$package_file" url)
 
-	local status
 	if [ ! -e "$installed_dir/$pkg.yaml" ]; then
 		status='not installed'
 	elif _is_outdated "$pkg"; then
@@ -467,15 +479,17 @@ _info_one() {
 
 
 _install_one() {
+	local allow_upgrade package_file pkg target
+
 	assert $# -eq 2
-	local pkg=$1
-	local allow_upgrade=$2
+	pkg=$1
+	allow_upgrade=$2
 
 	if [ -e "$installed_dir/$pkg.yaml" ] && ! $allow_upgrade; then
 		error "package \"$pkg\" is already installed"
 	fi
 
-	local target=$(_fetch_one "$pkg")
+	target=$(_fetch_one "$pkg")
 
 	rm -rf "$work_dir/$pkg/build"
 	mkdir -p "$work_dir/$pkg/build"
@@ -499,7 +513,7 @@ _install_one() {
 		$sudo "$gnumake" install USE_PGXS=1 PG_CONFIG="$pg_config"
 	)
 
-	local package_file=$(_package_file "$pkg")
+	package_file=$(_package_file "$pkg")
 	$sudo mkdir -p "$installed_dir"
 	$sudo cp "$package_file" "$installed_dir/"
 
@@ -508,14 +522,16 @@ _install_one() {
 
 
 _is_outdated() {
-	assert $# -eq 1
-	local pkg=$1
-	local installed_file=$installed_dir/$pkg.yaml
+	local available_file available_sha1 installed_file installed_sha1 pkg
 
-	local installed_sha1=$(parse_yaml_field "$installed_file" sha1)
-	local available_file=$(_package_file "$pkg")
+	assert $# -eq 1
+	pkg=$1
+	installed_file=$installed_dir/$pkg.yaml
+
+	installed_sha1=$(parse_yaml_field "$installed_file" sha1)
+	available_file=$(_package_file "$pkg")
 	if [ -e "$available_file" ]; then
-		local available_sha1=$(parse_yaml_field "$available_file" sha1)
+		available_sha1=$(parse_yaml_field "$available_file" sha1)
 		if [ "$installed_sha1" != "$available_sha1" ]; then
 			return 0
 		fi
@@ -533,17 +549,19 @@ _sha1() {
 
 
 _upgrade_one() {
+	local installed_sha1 new_sha1 package_file pkg
+
 	assert $# -eq 1
-	local pkg="$1"
+	pkg="$1"
 
 	if [ ! -e "$installed_dir/$pkg.yaml" ]; then
 		error "package \"$pkg\" is not installed"
 	fi
 
-	local package_file=$(_package_file "$pkg")
+	package_file=$(_package_file "$pkg")
 
-	local installed_sha1=$(parse_yaml_field "$installed_dir/$pkg.yaml" sha1)
-	local new_sha1=$(parse_yaml_field "$package_file" sha1)
+	installed_sha1=$(parse_yaml_field "$installed_dir/$pkg.yaml" sha1)
+	new_sha1=$(parse_yaml_field "$package_file" sha1)
 
 	if [ "$installed_sha1" = "$new_sha1" ]; then
 		output "Package $pkg already up to date"
@@ -555,10 +573,11 @@ _upgrade_one() {
 
 
 parse_yaml_field() {
+	local field file val
+
 	assert $# -eq 2
-	local file=$1
-	local field=$2
-	local val
+	file=$1
+	field=$2
 
 	val=$(cat "$file" | sed -n "s/^${field}: *//p")
 
@@ -571,8 +590,10 @@ parse_yaml_field() {
 
 
 canonical_archive_extension() {
+	local file
+
 	assert $# -eq 1
-	local file=$1
+	file=$1
 
 	case $file in
 		*.zip)
@@ -590,10 +611,12 @@ canonical_archive_extension() {
 
 
 download() {
+	local ext target url
+
 	assert $# -eq 2
-	local url=$1
-	local target=$2
-	local ext=$(canonical_archive_extension "$target")
+	url=$1
+	target=$2
+	ext=$(canonical_archive_extension "$target")
 
 	output "Downloading $pkg from $url"
 
@@ -607,9 +630,11 @@ download() {
 
 
 unpack() {
+	local ext file
+
 	assert $# -eq 1
-	local file=$1
-	local ext=$(canonical_archive_extension "$file")
+	file=$1
+	ext=$(canonical_archive_extension "$file")
 
         # FIXME: check directory structure
 	case $ext in
@@ -626,9 +651,10 @@ unpack() {
 
 
 write_cachedir_tag() {
-	assert $# -eq 1
+	local dir
 
-	local dir=$1
+	assert $# -eq 1
+	dir=$1
 
 	if [ -e "$dir/CACHEDIR.TAG" ]; then
 		return
