@@ -22,7 +22,7 @@ pex install foobar  >/dev/null 2>&1
 ok 'second installation fails' test $? -ne 0
 
 rm $tmpdir/share/postgresql/pex/installed/foobar.yaml
-pex -S install foobar >stdout.out
+pex -S install foobar >stdout.out 2>stderr.out
 ok 'installation with "sudo"' grep -q SUDO stdout.out
 
 cleanup
