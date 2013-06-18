@@ -60,8 +60,8 @@ EOF
 
 mkdir -p scratch/foobar-1.0
 cat <<EOF >scratch/foobar-1.0/Makefile
-all: ; echo PG_CONFIG=\$(PG_CONFIG)
-install: ; echo foobar >$tmpdir/lib/postgresql/foobar.so
+all: ; echo PG_CONFIG=\$(PG_CONFIG)\$(EXTRA_ALL)
+install: ; echo foobar >$tmpdir/lib/postgresql/foobar.so\$(EXTRA_INSTALL)
 EOF
 
 tar -C scratch -c -z -f scratch/foobar-1.0.tar.gz foobar-1.0/

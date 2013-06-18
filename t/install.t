@@ -3,7 +3,7 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 10
+plan 12
 
 ok 'pex init succeeds' pex init $test_repo_url
 
@@ -26,7 +26,23 @@ ok 'second installation fails' test $? -ne 0
 pex install --if-not-exists foobar  >/dev/null 2>&1
 ok 'second installation with --if-not-exists does not error' test $? -eq 0
 
-rm $tmpdir/share/postgresql/pex/installed/foobar.yaml
+rm -f $tmpdir/share/postgresql/pex/installed/foobar.yaml
+EXTRA_ALL='; false'
+export EXTRA_ALL
+pex install foobar >stdout.out 2>stderr.out
+ok 'make all failure detected' test $? -ne 0
+unset EXTRA_ALL
+
+rm -f $tmpdir/share/postgresql/pex/installed/foobar.yaml
+EXTRA_INSTALL='; false'
+export EXTRA_INSTALL
+sed_in_place "s/^install:.*/install: ; false/" $tmpdir/home/.local/share/pex/packages/foobar.yaml
+pex install foobar >stdout.out 2>stderr.out
+ok 'make install failure detected' test $? -ne 0
+unset EXTRA_INSTALL
+
+rm -f $tmpdir/share/postgresql/pex/installed/foobar.yaml
+
 pex -S install foobar >stdout.out 2>stderr.out
 ok 'installation with "sudo"' grep -q SUDO stdout.out
 
