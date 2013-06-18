@@ -3,11 +3,13 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 8
+plan 9
 
 ok 'pex init succeeds' pex init $test_repo_url
 
 ok_program 'no package is listed as installed' 0 '' pex list
+
+ok_program 'pex install no argument errors' 1 'pex: "install" takes at least one argument' pex install
 
 pex install foobar >/dev/null 2>&1
 ok 'pex install foobar succeeds' test $? -eq 0

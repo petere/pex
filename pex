@@ -230,6 +230,10 @@ cmd_init() {
 cmd_install() {
 	local pkg
 
+	if [ $# -eq 0 ]; then
+		error '"install" takes at least one argument'
+	fi
+
 	for pkg in "$@"; do
 		_install_one "$pkg" false
 	done
