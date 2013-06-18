@@ -228,14 +228,21 @@ cmd_init() {
 
 
 cmd_install() {
-	local pkg
+	local pkg if_not_exists
+
+	if [ $# -gt 0 ] && [ x"$1" = x'--if-not-exists' ]; then
+		if_not_exists=true
+		shift
+	else
+		if_not_exists=false
+	fi
 
 	if [ $# -eq 0 ]; then
 		error '"install" takes at least one argument'
 	fi
 
 	for pkg in "$@"; do
-		_install_one "$pkg" false
+		_install_one "$pkg" false $if_not_exists
 	done
 }
 
@@ -506,13 +513,17 @@ _info_one() {
 
 
 _install_one() {
-	local allow_upgrade package_file pkg target
+	local allow_upgrade package_file pkg target if_not_exists
 
-	assert $# -eq 2
+	assert $# -eq 3
 	pkg=$1
 	allow_upgrade=$2
+	if_not_exists=$3
 
 	if [ -e "$installed_dir/$pkg.yaml" ] && ! $allow_upgrade; then
+		if $if_not_exists; then
+			exit 0
+		fi
 		error "package \"$pkg\" is already installed"
 	fi
 
@@ -595,7 +606,7 @@ _upgrade_one() {
 		return
 	fi
 
-	_install_one "$pkg" true
+	_install_one "$pkg" true false
 }
 
 

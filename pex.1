@@ -45,7 +45,7 @@ Create directories for Pex and do the initial clone of the packages repository. 
 .
 .TP
 \fBinstall\fR \fIpackage\fR
-Download, build, and install \fIpackage\fR.
+Download, build, and install \fIpackage\fR.  If the option \fB\-\-if\-not\-exists\fR is specified and the package is already installed, do nothing.  Otherwise, installing an already installed package is an error.
 .
 .TP
 \fBls\fR, \fBlist\fR

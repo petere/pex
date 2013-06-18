@@ -3,7 +3,7 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 9
+plan 10
 
 ok 'pex init succeeds' pex init $test_repo_url
 
@@ -22,6 +22,9 @@ ok 'package file was installed' test -s $tmpdir/lib/postgresql/foobar.so
 
 pex install foobar  >/dev/null 2>&1
 ok 'second installation fails' test $? -ne 0
+
+pex install --if-not-exists foobar  >/dev/null 2>&1
+ok 'second installation with --if-not-exists does not error' test $? -eq 0
 
 rm $tmpdir/share/postgresql/pex/installed/foobar.yaml
 pex -S install foobar >stdout.out 2>stderr.out
