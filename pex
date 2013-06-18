@@ -70,6 +70,12 @@ else
 	gnumake=make
 fi
 
+if which shasum >/dev/null; then
+	sha1sum=shasum
+else
+	sha1sum=sha1sum
+fi
+
 
 cmd_audit() {
 	local pkg all_packages
@@ -561,7 +567,7 @@ _is_outdated() {
 
 _sha1() {
 	assert $# -eq 1
-	sha1sum "$1" | cut -d ' ' -f 1
+	"$sha1sum" "$1" | cut -d ' ' -f 1
 }
 
 

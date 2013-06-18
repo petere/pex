@@ -19,6 +19,12 @@ GIT_COMMITTER_NAME=Test
 GIT_COMMITTER_EMAIL=test@example.com
 export GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
 
+if which shasum >/dev/null; then
+	sha1sum=shasum
+else
+	sha1sum=sha1sum
+fi
+
 
 # make mock directory structure
 
@@ -59,11 +65,13 @@ install: ; echo foobar >$tmpdir/lib/postgresql/foobar.so
 EOF
 
 tar -C scratch -c -z -f scratch/foobar-1.0.tar.gz foobar-1.0/
-foobar10_sha1=$(sha1sum scratch/foobar-1.0.tar.gz | cut -d ' ' -f 1)
+foobar10_sha1=$("$sha1sum" scratch/foobar-1.0.tar.gz | cut -d ' ' -f 1)
+test -n "$foobar10_sha1"  # sanity check
 
 cp -R scratch/foobar-1.0 scratch/foobar-1.1
 tar -C scratch -c -z -f scratch/foobar-1.1.tar.gz foobar-1.1/
-foobar11_sha1=$(sha1sum scratch/foobar-1.1.tar.gz | cut -d ' ' -f 1)
+foobar11_sha1=$("$sha1sum" scratch/foobar-1.1.tar.gz | cut -d ' ' -f 1)
+test -n "$foobar11_sha1"
 
 mkdir -p scratch/zoobar-1.0
 cat <<EOF >scratch/zoobar-1.0/Makefile
@@ -72,7 +80,8 @@ install: ; echo zoobar >$tmpdir/lib/postgresql/zoobar.so
 EOF
 
 tar -C scratch -c -z -f scratch/zoobar-1.0.tar.gz zoobar-1.0/
-zoobar10_sha1=$(sha1sum scratch/zoobar-1.0.tar.gz | cut -d ' ' -f 1)
+zoobar10_sha1=$("$sha1sum" scratch/zoobar-1.0.tar.gz | cut -d ' ' -f 1)
+test -n "$zoobar10_sha1"
 
 
 
