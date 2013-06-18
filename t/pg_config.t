@@ -71,7 +71,7 @@ diag '-p option'
 rm -rf $tmpdir/share/postgresql/pex/installed/
 
 pex -p 5432 install foobar >stdout.out 2>stderr.out
-grep -q "PG_CONFIG=$tmpdir/bin/pg_config" stdout.out && grep -q "psql -X -At -p 5432 -c show data_directory" stderr.out
+grep -q "PG_CONFIG=$tmpdir/bin/pg_config" stdout.out && grep -q "psql -X -At -d postgres -p 5432 -c show data_directory" stderr.out
 ok 'option -p works' test $? -eq 0
 
 
@@ -80,7 +80,7 @@ diag '-P option'
 rm -rf $tmpdir/share/postgresql/pex/installed/
 
 pex -P install foobar >stdout.out 2>stderr.out
-grep -q "PG_CONFIG=$tmpdir/bin/pg_config" stdout.out && grep -q "psql -X -At -c show data_directory" stderr.out
+grep -q "PG_CONFIG=$tmpdir/bin/pg_config" stdout.out && grep -q "psql -X -At -d postgres -c show data_directory" stderr.out
 ok 'option -P works' test $? -eq 0
 
 

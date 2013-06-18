@@ -752,10 +752,10 @@ while getopts 'd:Dg:Gp:PS' opt; do
 			pg_config=$(_pg_config_from_datadir "$PGDATA")
 			;;
 		p)
-			pg_config=$(_pg_config_from_datadir $(psql -At -p "$OPTARG" -c 'show data_directory'))
+			pg_config=$(_pg_config_from_datadir $(psql -At -d postgres -p "$OPTARG" -c 'show data_directory'))
 			;;
 		P)
-			pg_config=$(_pg_config_from_datadir $(psql -At -c 'show data_directory'))
+			pg_config=$(_pg_config_from_datadir $(psql -At -d postgres -c 'show data_directory'))
 			;;
 		S)
 			sudo=sudo
