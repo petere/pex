@@ -64,13 +64,13 @@ packages_dir=$data_dir/packages
 work_dir=$XDG_CACHE_HOME/pex
 
 
-if which gmake >/dev/null; then
+if which gmake >/dev/null 2>&1; then
 	gnumake=gmake
 else
 	gnumake=make
 fi
 
-if which shasum >/dev/null; then
+if which shasum >/dev/null 2>&1; then
 	sha1sum=shasum
 else
 	sha1sum=sha1sum
@@ -372,9 +372,9 @@ _browser() {
 		$BROWSER "$@"
 	elif [ $(uname -s) = 'Darwin' ]; then
 		open "$@"
-	elif which xdg-open >/dev/null; then
+	elif which xdg-open >/dev/null 2>&1; then
 		xdg-open "$@"
-	elif which sensible-browser >/dev/null; then
+	elif which sensible-browser >/dev/null 2>&1; then
 		sensible-browser "$@"
 	else
 		error "cannot find a suitable browser"
@@ -389,7 +389,7 @@ _editor() {
 	set +u
 	if [ -n "$EDITOR" ]; then
 		$EDITOR "$@"
-	elif which sensible-editor >/dev/null; then
+	elif which sensible-editor >/dev/null 2>&1; then
 		sensible-editor "$@"
 	else
 		vi "$@"

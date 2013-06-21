@@ -19,7 +19,7 @@ GIT_COMMITTER_NAME=Test
 GIT_COMMITTER_EMAIL=test@example.com
 export GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
 
-if which shasum >/dev/null; then
+if which shasum >/dev/null 2>&1; then
 	sha1sum=shasum
 else
 	sha1sum=sha1sum
