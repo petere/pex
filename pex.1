@@ -24,6 +24,10 @@ Print \fIpackage\fR description file to standard output.
 Help create a new package description file: Download the file at \fIurl\fR, populate some fields in the package description file, open the new package description file in an editor.
 .
 .TP
+\fBdebuild\fR \fIpackage\fR \fIoptions\fR...
+(experimental) Build a Debian package out of \fIpackage\fR.  Additional options are passed to \fBdebuild\fR (for example \fB-b\fR for a binary-only build).
+.
+.TP
 \fBedit\fR [\fIpackage\fR]...
 Open \fIpackage\fR description file (or all packages) in an editor.
 .
@@ -58,6 +62,10 @@ List outdated packages.
 .TP
 \fBrepotest\fR
 Run a test suite over the current package repository.  The details of this are subject to change.
+.
+.TP
+\fBrpmbuild\fR \fIpackage\fR \fIoptions\fR...
+(experimental) Build an RPM package out of \fIpackage\fR.  Additional options are passed to \fBrpmbuild\fR (for example \fB-ba\fR).
 .
 .TP
 \fBsearch\fR [\fIsubstring\fR]
