@@ -3,7 +3,7 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 5
+plan 6
 
 pex init $test_repo_url
 
@@ -36,5 +36,7 @@ ok_program 'pex info outdated output' 0 "foobar
 homepage: http://www.example.com/
 url: file://$tmpdir/scratch/foobar-1.1.tar.gz
 status: outdated" pex info foobar
+
+ok_program 'pex info with nonexistent package fails' 1 'pex: package "nonexistent" does not exist' pex info nonexistent
 
 cleanup

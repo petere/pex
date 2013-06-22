@@ -446,10 +446,6 @@ _fetch_one() {
 	pkg=$1
 
 	package_file=$(_package_file "$pkg")
-	if [ ! -f "$package_file" ]; then
-		error "package file \"$package_file\" does not exist"
-	fi
-
 	url=$(parse_yaml_field "$package_file" url)
 	sha1=$(parse_yaml_field "$package_file" sha1)
 
@@ -490,10 +486,6 @@ _info_one() {
 	pkg=$1
 
 	package_file=$(_package_file "$pkg")
-	if [ ! -f "$package_file" ]; then
-		error "package file \"$package_file\" does not exist"
-	fi
-
 	homepage=$(parse_yaml_field "$package_file" homepage)
 	url=$(parse_yaml_field "$package_file" url)
 
