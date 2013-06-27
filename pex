@@ -792,8 +792,6 @@ canonical_archive_extension() {
 			echo "tar.bz2";;
 		*.tar.*)
 			echo "$file" | sed 's,^.*\.\(tar\..*\)$,\1,';;
-		*.git)
-			echo "git";;
 	esac
 }
 
@@ -807,13 +805,7 @@ download() {
 	ext=$(canonical_archive_extension "$target")
 
 	output "Downloading $pkg from $url"
-
-	case $ext in
-		git)
-			git clone --depth=1 "$url" "$target";;
-		*)
-			curl --progress-bar --location -o "$target" "$url";;
-	esac
+	curl --progress-bar --location -o "$target" "$url"
 }
 
 
@@ -830,8 +822,6 @@ unpack() {
 			unzip "$file";;
 		tar.*)
 			tar xvf "$file";;
-		git)
-			;;
 		*)
 			error "unsupported archive format: $file";;
 	esac
