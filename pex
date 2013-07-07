@@ -848,8 +848,15 @@ EOF
 
 
 _pg_config_from_datadir() {
+	local out
+
 	assert $# -eq 1
-	cat "$1/postmaster.opts" | awk '{ print $1 }' | sed 's,/postgres$,/pg_config,'
+	# XXX doesn't handle spaces in installation directory name
+	out=$(sed -n 's,^\([^ ]*/\)postgres.*$,\1/pg_config,p' "$1/postmaster.opts")
+	if [ -z "$out" ]; then
+		error "unrecognized file contents in \"$1/postmaster.opts\""
+	fi
+	echo "$out"
 }
 
 

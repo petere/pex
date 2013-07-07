@@ -5,7 +5,7 @@
 
 mydir=$PWD
 
-plan 14
+plan 16
 
 pex init $test_repo_url
 
@@ -47,6 +47,25 @@ rm -rf $tmpdir/share/postgresql/pex/installed/
 
 pex -d $tmpdir/data install foobar >stdout.out 2>/dev/null
 ok 'option -d works' grep -q "PG_CONFIG=$tmpdir/bin/pg_config" stdout.out
+
+
+chmod a-r "$tmpdir/data/postmaster.opts"
+
+rm -rf $tmpdir/share/postgresql/pex/installed/
+
+pex -d $tmpdir/data install foobar >stdout.out 2>/dev/null
+ok 'option -d with opts file not readable fails cleanly' test $? -ne 0
+
+chmod a+r "$tmpdir/data/postmaster.opts"
+
+
+cp "$tmpdir/data/postmaster.opts" "$tmpdir/data/postmaster.opts.bak"
+echo 'invalid' >"$tmpdir/data/postmaster.opts"
+
+pex -d $tmpdir/data install foobar >stdout.out 2>/dev/null
+ok 'option -d with invalid opts fails cleanly' test $? -ne 0
+
+mv "$tmpdir/data/postmaster.opts.bak" "$tmpdir/data/postmaster.opts"
 
 
 diag '-D option'
