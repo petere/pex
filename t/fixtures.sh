@@ -56,6 +56,18 @@ $tmpdir/bin/postgres "-D" "$tmpdir/data"
 EOF
 
 
+# "bad" psql to simulate failures
+
+mkdir $tmpdir/badbin
+
+cat <<EOF >$tmpdir/badbin/psql
+#!/bin/sh
+exit 2
+EOF
+
+chmod a+x $tmpdir/badbin/*
+
+
 # make mock source tarballs to download
 
 mkdir -p scratch/foobar-1.0

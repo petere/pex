@@ -5,7 +5,7 @@
 
 mydir=$PWD
 
-plan 10
+plan 14
 
 pex init $test_repo_url
 
@@ -75,6 +75,17 @@ grep -q "PG_CONFIG=$tmpdir/bin/pg_config" stdout.out && grep -q "psql -X -At -d 
 ok 'option -p works' test $? -eq 0
 
 
+save_PATH=$PATH
+PATH=$tmpdir/badbin:$PATH
+
+pex -p 5432 install foobar >stdout.out 2>stderr.out
+ok 'option -p with psql error fails cleanly' test $? -eq 2
+grep -q 'assertion failed' stderr.out
+ok 'option -p with psql error does not fail assertion' test $? -eq 1
+
+PATH=$save_PATH
+
+
 diag '-P option'
 
 rm -rf $tmpdir/share/postgresql/pex/installed/
@@ -82,6 +93,17 @@ rm -rf $tmpdir/share/postgresql/pex/installed/
 pex -P install foobar >stdout.out 2>stderr.out
 grep -q "PG_CONFIG=$tmpdir/bin/pg_config" stdout.out && grep -q "psql -X -At -d postgres -c show data_directory" stderr.out
 ok 'option -P works' test $? -eq 0
+
+
+save_PATH=$PATH
+PATH=$tmpdir/badbin:$PATH
+
+pex -P install foobar >stdout.out 2>stderr.out
+ok 'option -P with psql error fails cleanly' test $? -eq 2
+grep -q 'assertion failed' stderr.out
+ok 'option -P with psql error does not fail assertion' test $? -eq 1
+
+PATH=$save_PATH
 
 
 cleanup
