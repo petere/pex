@@ -324,12 +324,12 @@ cmd_list() {
 		error '"list" takes no arguments'
 	fi
 
-	if [ ! -d "$installed_dir" ]; then
+	if [ ! -d "$(_installed_dir)" ]; then
 		return
 	fi
 
 	(
-		cd "$installed_dir"
+		cd "$(_installed_dir)"
 		ls -1 *.yaml 2>/dev/null | sed 's/\.yaml$//' | sort
 	)
 
@@ -343,11 +343,11 @@ cmd_outdated() {
 		error '"outdated" takes no arguments'
 	fi
 
-	if [ ! -d "$installed_dir" ]; then
+	if [ ! -d "$(_installed_dir)" ]; then
 		return
 	fi
 
-	for installed_file in $(find "$installed_dir" -name "*.yaml" -print); do
+	for installed_file in $(find "$(_installed_dir)" -name "*.yaml" -print); do
 		pkg=$(basename "$installed_file" | sed 's/\.yaml$//')
 		if _is_outdated "$pkg"; then
 			echo "$pkg"
@@ -532,6 +532,14 @@ _editor() {
 }
 
 
+_installed_dir() {
+	local pgsharedir
+
+	pgsharedir=$("$pg_config" --sharedir)
+	echo "$pgsharedir/pex/installed"
+}
+
+
 _package_file() {
 	local filename pkg ignore_missing
 
@@ -647,7 +655,7 @@ _info_one() {
 	homepage=$(parse_yaml_field "$package_file" homepage)
 	url=$(parse_yaml_field "$package_file" url)
 
-	if [ ! -e "$installed_dir/$pkg.yaml" ]; then
+	if [ ! -e "$(_installed_dir)/$pkg.yaml" ]; then
 		status='not installed'
 	elif _is_outdated "$pkg"; then
 		status='outdated'
@@ -670,7 +678,7 @@ _install_one() {
 	allow_upgrade=$2
 	if_not_exists=$3
 
-	if [ -e "$installed_dir/$pkg.yaml" ] && ! $allow_upgrade; then
+	if [ -e "$(_installed_dir)/$pkg.yaml" ] && ! $allow_upgrade; then
 		if $if_not_exists; then
 			exit 0
 		fi
@@ -702,8 +710,8 @@ _install_one() {
 	) || exit
 
 	package_file=$(_package_file "$pkg")
-	$sudo mkdir -p "$installed_dir"
-	$sudo cp "$package_file" "$installed_dir/"
+	$sudo mkdir -p "$(_installed_dir)"
+	$sudo cp "$package_file" "$(_installed_dir)/"
 
 	output "Package $pkg installed successfully"
 }
@@ -714,7 +722,7 @@ _is_outdated() {
 
 	assert $# -eq 1
 	pkg=$1
-	installed_file=$installed_dir/$pkg.yaml
+	installed_file=$(_installed_dir)/$pkg.yaml
 
 	installed_sha1=$(parse_yaml_field "$installed_file" sha1)
 	available_file=$(_package_file "$pkg")
@@ -742,13 +750,13 @@ _upgrade_one() {
 	assert $# -eq 1
 	pkg="$1"
 
-	if [ ! -e "$installed_dir/$pkg.yaml" ]; then
+	if [ ! -e "$(_installed_dir)/$pkg.yaml" ]; then
 		error "package \"$pkg\" is not installed"
 	fi
 
 	package_file=$(_package_file "$pkg")
 
-	installed_sha1=$(parse_yaml_field "$installed_dir/$pkg.yaml" sha1)
+	installed_sha1=$(parse_yaml_field "$(_installed_dir)/$pkg.yaml" sha1)
 	new_sha1=$(parse_yaml_field "$package_file" sha1)
 
 	if [ "$installed_sha1" = "$new_sha1" ]; then
@@ -926,9 +934,6 @@ else
 	_pg_config_dir=$(cd "$_pg_config_dir" && pwd)
 	pg_config=$_pg_config_dir/$_pg_config_base
 fi
-
-pgsharedir=$("$pg_config" --sharedir)
-installed_dir=$pgsharedir/pex/installed
 
 
 command=$1
