@@ -107,6 +107,7 @@ cat <<EOF >foobar.yaml
 homepage: http://www.example.com/
 url: file://$tmpdir/scratch/foobar-1.0.tar.gz
 sha1: $foobar10_sha1
+aliases: foobaralias1 foobaralias2
 EOF
 git add foobar.yaml
 git commit -m 'Add foobar package' -q
@@ -115,6 +116,7 @@ cat <<EOF >zoobar.yaml
 homepage: http://www.example.net/
 url: file://$tmpdir/scratch/zoobar-1.0.tar.gz
 sha1: $zoobar10_sha1
+aliases: foobaralias2
 EOF
 git add zoobar.yaml
 git commit -m 'Add zoobar package' -q

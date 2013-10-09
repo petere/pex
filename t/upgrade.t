@@ -3,7 +3,7 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 7
+plan 8
 
 ok 'pex init succeeds' pex init $test_repo_url
 
@@ -16,6 +16,8 @@ ok 'pex install foobar succeeds' test $? -eq 0
 ok 'foobar-1.0 sha1 installed' grep -q "$foobar10_sha1" $tmpdir/share/postgresql/pex/installed/foobar.yaml
 
 ok_program 'pex upgrade does nothing' 0 '==> Package foobar already up to date' pex upgrade foobar
+
+ok_program 'pex upgrade alias' 0 '==> Package foobar already up to date' pex upgrade foobaralias1
 
 sed_in_place "s/foobar-1.0/foobar-1.1/;s/sha1:.*/sha1: $foobar11_sha1/" $tmpdir/home/.local/share/pex/packages/foobar.yaml
 
