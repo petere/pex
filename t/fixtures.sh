@@ -42,6 +42,11 @@ echo $tmpdir/data
 echo \$0 "\$*" 1>&2
 EOF
 
+cat <<EOF >bin/rpm
+#!/bin/sh
+echo postgresql
+EOF
+
 cat <<EOF >bin/sudo
 #!/bin/sh
 echo SUDO "\$@"
@@ -72,8 +77,11 @@ chmod a+x $tmpdir/badbin/*
 
 mkdir -p scratch/foobar-1.0
 cat <<EOF >scratch/foobar-1.0/Makefile
-all: ; echo PG_CONFIG=\$(PG_CONFIG)\$(EXTRA_ALL)
-install: ; echo foobar >$tmpdir/lib/postgresql/foobar.so\$(EXTRA_INSTALL)
+all:
+	echo PG_CONFIG=\$(PG_CONFIG)\$(EXTRA_ALL)
+install:
+	mkdir -p \$(DESTDIR)$tmpdir/lib/postgresql
+	echo foobar >\$(DESTDIR)$tmpdir/lib/postgresql/foobar.so\$(EXTRA_INSTALL)
 EOF
 
 tar -C scratch -c -z -f scratch/foobar-1.0.tar.gz foobar-1.0/
