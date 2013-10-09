@@ -101,7 +101,7 @@ test -n "$zoobar10_sha1"
 
 mkdir -p repo
 cd repo
-git init
+git init -q
 
 cat <<EOF >foobar.yaml
 homepage: http://www.example.com/
@@ -109,7 +109,7 @@ url: file://$tmpdir/scratch/foobar-1.0.tar.gz
 sha1: $foobar10_sha1
 EOF
 git add foobar.yaml
-git commit -m 'Add foobar package'
+git commit -m 'Add foobar package' -q
 
 cat <<EOF >zoobar.yaml
 homepage: http://www.example.net/
@@ -117,7 +117,7 @@ url: file://$tmpdir/scratch/zoobar-1.0.tar.gz
 sha1: $zoobar10_sha1
 EOF
 git add zoobar.yaml
-git commit -m 'Add zoobar package'
+git commit -m 'Add zoobar package' -q
 
 cd ..
 
