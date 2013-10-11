@@ -721,7 +721,7 @@ _install_one() {
 		cd "$work_dir/$pkg/build"
 		output "Unpacking $pkg"
 		unpack "$target"
-		dir=$(find . -type d -depth 1)
+		dir=$(find . -maxdepth 1 -mindepth 1 -type d)
 		if [ $(echo "$dir" | wc -l) -gt 1 ]; then
 			error "too many directories: $dir"
 		fi
