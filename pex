@@ -234,7 +234,7 @@ override_dh_auto_test: ;
 EOF
 		chmod a+x debian/rules
 		output "Building Debian package $pkg"
-		debuild "$@"
+		debuild --no-lintian "$@"
 	) || exit
 	output "Build results are in $work_dir/$pkg/debuild/"
 }
