@@ -64,4 +64,10 @@ There are three required fields:
 * `url`: A location that curl can download and either tar or zip can unpack to get the package source.
 * `sha1`: The SHA1 hash of the downloaded archive.
 
+There is one optional field:
+
+* `aliases`: Lists alternative package names.  These can be used in commands such as `install` instead of the canonical package name.  If the package provides extensions that differ from the package name, it is recommended that the extension names be listed as aliases.  For example, the package `plv8` might list
+
+    aliases: plcoffee plls
+
 Use `pex audit` to check the package file for syntax and other errors. Note that this requires Perl and the YAML module.

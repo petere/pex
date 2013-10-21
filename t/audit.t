@@ -3,7 +3,7 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 9
+plan 10
 
 ok 'pex init succeeds' pex init $test_repo_url
 
@@ -13,6 +13,9 @@ ok_program 'pex audit succeeds' 0 '==> Auditing foobar
 
 ok_program 'pex audit foobar succeeds' 0 '==> Auditing foobar
 ==> Looks good' pex audit foobar
+
+ok_program 'pex audit foobaralias1 succeeds' 0 '==> Auditing foobar
+==> Looks good' pex audit foobaralias1
 
 # make a mess ...
 sed 's/url/abc/' $tmpdir/home/.local/share/pex/packages/foobar.yaml >$tmpdir/home/.local/share/pex/packages/barbar.yaml

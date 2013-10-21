@@ -348,7 +348,7 @@ cmd_outdated() {
 	fi
 
 	for installed_file in $(find "$(_installed_dir)" -name "*.yaml" -print); do
-		pkg=$(basename "$installed_file" | sed 's/\.yaml$//')
+		pkg=$(basename "$installed_file" .yaml)
 		if _is_outdated "$pkg"; then
 			echo "$pkg"
 		fi
@@ -448,9 +448,18 @@ cmd_search() {
 	(
 		cd "$packages_dir"
 		if [ $# -gt 0 ]; then
-			ls -1 *"$1"*.yaml 2>/dev/null | sed 's/\.yaml$//' | sort
+			(
+				local a search
+
+				search=$1
+
+				ls -1 *"$search"*.yaml 2>/dev/null | sed 's/\.yaml$//'
+				for a in $(sed -n 's/^aliases: *//p' *.yaml | tr -s ' ' '\n'); do
+					case $a in *"$search"*) echo $a;; esac
+				done
+			) | sort -u
 		else
-			ls -1 *.yaml 2>/dev/null | sed 's/\.yaml$//' | sort
+			ls -1 *.yaml 2>/dev/null | sed 's/\.yaml$//' | sort -u
 		fi
 	)
 }
@@ -554,6 +563,18 @@ _package_file() {
 		error "packages directory \"$packages_dir\" does not exist (Did you run \"pex init\"?)"
 	fi
 	filename="$packages_dir/$pkg.yaml"
+
+	# resolve aliases
+	if [ ! -f "$filename" ]; then
+		res=$(grep -l '^aliases:.*\b'"$pkg"'\b' "$packages_dir"/*.yaml || [ $? -eq 1 ])
+		if [ $(echo "$res" | wc -l) -gt 1 ]; then
+			error "too many aliases: $res"
+		fi
+		if [ -n "$res" ]; then
+			filename=$res
+		fi
+	fi
+
 	if [ ! -f "$filename" ] && ! $ignore_missing; then
 		error "package \"$pkg\" does not exist"
 	fi
@@ -586,13 +607,15 @@ _package_version() {
 
 
 _audit_one() {
-	local homepage package_file pkg
+	local homepage package_file package_name pkg
 
 	assert $# -eq 1
 	pkg=$1
-	output "Auditing $pkg"
 
 	package_file=$(_package_file "$pkg")
+	package_name=$(basename "$package_file" .yaml)
+
+	output "Auditing $package_name"
 
 	perl -MYAML -e 'use YAML;YAML::LoadFile("'"$package_file"'")'
 	homepage=$(parse_yaml_field "$package_file" homepage)
@@ -646,24 +669,25 @@ _download_target() {
 
 
 _info_one() {
-	local homepage package_file pkg status url
+	local homepage package_file package_name pkg status url
 
 	assert $# -eq 1
 	pkg=$1
 
 	package_file=$(_package_file "$pkg")
+	package_name=$(basename "$package_file" .yaml)
 	homepage=$(parse_yaml_field "$package_file" homepage)
 	url=$(parse_yaml_field "$package_file" url)
 
-	if [ ! -e "$(_installed_dir)/$pkg.yaml" ]; then
+	if [ ! -e "$(_installed_dir)/$package_name.yaml" ]; then
 		status='not installed'
-	elif _is_outdated "$pkg"; then
+	elif _is_outdated "$package_name"; then
 		status='outdated'
 	else
 		status='installed'
 	fi
 
-	echo "$pkg"
+	echo "$package_name"
 	echo "homepage: $homepage"
 	echo "url: $url"
 	echo "status: $status"
@@ -678,7 +702,9 @@ _install_one() {
 	allow_upgrade=$2
 	if_not_exists=$3
 
-	if [ -e "$(_installed_dir)/$pkg.yaml" ] && ! $allow_upgrade; then
+	package_file=$(_package_file "$pkg")
+
+	if [ -e "$(_installed_dir)/$(basename "$package_file")" ] && ! $allow_upgrade; then
 		if $if_not_exists; then
 			exit 0
 		fi
@@ -695,7 +721,11 @@ _install_one() {
 		cd "$work_dir/$pkg/build"
 		output "Unpacking $pkg"
 		unpack "$target"
-		cd "$pkg"*  # FIXME
+		dir=$(find . -maxdepth 1 -mindepth 1 -type d)
+		if [ $(echo "$dir" | wc -l) -gt 1 ]; then
+			error "too many directories: $dir"
+		fi
+		cd "$dir"
 		output "Building $pkg"
 		if [ -x configure ]; then
 			./configure \
@@ -709,7 +739,6 @@ _install_one() {
 		$sudo "$gnumake" install USE_PGXS=1 PG_CONFIG="$pg_config" || exit
 	) || exit
 
-	package_file=$(_package_file "$pkg")
 	$sudo mkdir -p "$(_installed_dir)"
 	$sudo cp "$package_file" "$(_installed_dir)/"
 
@@ -745,22 +774,23 @@ _sha1() {
 
 
 _upgrade_one() {
-	local installed_sha1 new_sha1 package_file pkg
+	local installed_sha1 new_sha1 package_file package_name pkg
 
 	assert $# -eq 1
 	pkg="$1"
 
-	if [ ! -e "$(_installed_dir)/$pkg.yaml" ]; then
+	package_file=$(_package_file "$pkg")
+	package_name=$(basename "$package_file" .yaml)
+
+	if [ ! -e "$(_installed_dir)/$package_name.yaml" ]; then
 		error "package \"$pkg\" is not installed"
 	fi
 
-	package_file=$(_package_file "$pkg")
-
-	installed_sha1=$(parse_yaml_field "$(_installed_dir)/$pkg.yaml" sha1)
+	installed_sha1=$(parse_yaml_field "$(_installed_dir)/$package_name.yaml" sha1)
 	new_sha1=$(parse_yaml_field "$package_file" sha1)
 
 	if [ "$installed_sha1" = "$new_sha1" ]; then
-		output "Package $pkg already up to date"
+		output "Package $package_name already up to date"
 		return
 	fi
 

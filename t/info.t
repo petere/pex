@@ -3,7 +3,7 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 6
+plan 7
 
 pex init $test_repo_url
 
@@ -29,6 +29,11 @@ ok_program 'pex info installed output' 0 "foobar
 homepage: http://www.example.com/
 url: file://$tmpdir/scratch/foobar-1.0.tar.gz
 status: installed" pex info foobar
+
+ok_program 'pex info with alias' 0 "foobar
+homepage: http://www.example.com/
+url: file://$tmpdir/scratch/foobar-1.0.tar.gz
+status: installed" pex info foobaralias1
 
 sed_in_place "s/foobar-1.0/foobar-1.1/;s/sha1:.*/sha1: $foobar11_sha1/" $tmpdir/home/.local/share/pex/packages/foobar.yaml
 
