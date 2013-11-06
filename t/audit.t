@@ -3,7 +3,11 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 10
+if perl -e 'use YAML' 2>/dev/null; then
+	plan 10
+else
+	skip_all 'Perl YAML module not installed'
+fi
 
 ok 'pex init succeeds' pex init $test_repo_url
 
