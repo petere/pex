@@ -149,7 +149,7 @@ Downloaded package archive files and build trees are stored under this directory
 Package description files (normally a Git repository) are stored under this directory.
 .
 .TP
-$(pg_config --sharedir)\fI/pex/\fR
+$(pg_config \-\-sharedir)\fI/pex/\fR
 This directory contains information about what packages are installed.  You can remove it if it bothers you, but then it is not possible to query what packages are installed, and the upgrade functionality won't know what to do.
 .
 .SH NOTES
@@ -188,11 +188,11 @@ pex upgrade
 
 Install a package into several PostgreSQL installations:
 .RS
-pex -p 5432 install pghashlib
+pex \-p 5432 install pghashlib
 .br
-pex -p 5433 install pghashlib
+pex \-p 5433 install pghashlib
 .br
-pex -p 5434 install pghashlib
+pex \-p 5434 install pghashlib
 .RE
 .
 .SH AUTHORS
