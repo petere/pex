@@ -29,3 +29,15 @@ install: all installdirs
 
 uninstall:
 	$(RM) $(DESTDIR)$(bindir)/pex $(DESTDIR)$(mandir)/man1/pex.1
+
+
+DEB_VERSION = $(shell git describe | sed s/-/+/g)
+
+debian/changelog:
+	dch --create --package=pex --newversion='$(DEB_VERSION)' -D private --force-distribution 'Automatic changelog entry'
+
+debian/copyright:
+	cp LICENSE $@
+
+deb: debian/changelog debian/copyright
+	debuild

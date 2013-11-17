@@ -1,0 +1,15 @@
+Source: pex
+Maintainer: Peter Eisentraut <peter@eisentraut.org>
+Build-Depends: curl, debhelper (>= 9), git, libyaml-perl
+Standards-Version: 3.9.4
+Section: database
+Priority: optional
+
+Package: pex
+Architecture: all
+Depends: curl, git, ${misc:Depends}
+Recommends: libyaml-perl
+Description: package manager for PostgreSQL
+ Pex is a tool for downloading and installing PostgreSQL extensions
+ and other packages.  It’s based on Git and standard Unix tools
+ underneath.

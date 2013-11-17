@@ -32,6 +32,8 @@ The standard installation procedure is:
 
 This install the `pex` program and the man page under `/usr/local`. See the `Makefile` for more options.
 
+To make a Debian package, run `make deb`.
+
 After installation, you must run
 
     pex init
