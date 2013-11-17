@@ -294,7 +294,7 @@ cmd_init() {
 	mkdir -p "$data_dir"
 	(
 		cd "$data_dir"
-		git clone $remote packages
+		git clone -q $remote packages
 	)
 }
 
