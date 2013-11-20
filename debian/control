@@ -4,6 +4,7 @@ Build-Depends: curl, debhelper (>= 9), git, libyaml-perl
 Standards-Version: 3.9.4
 Section: database
 Priority: optional
+Homepage: https://github.com/petere/pex
 
 Package: pex
 Architecture: all
