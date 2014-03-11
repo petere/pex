@@ -385,7 +385,7 @@ cmd_rpmbuild() {
 	pkg=$1
 	shift
 
-	pgrpmname=$(rpm -q -f "$pg_config" --queryformat '%{NAME}')
+	pgrpmname=$(rpm -q -f "$pg_config" --queryformat '%{NAME}') || error "$pgrpmname"
 	test -n "$pgrpmname"
 
 	package_file=$(_package_file "$pkg")
