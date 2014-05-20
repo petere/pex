@@ -22,7 +22,7 @@ Pex has been influenced by [Homebrew](http://mxcl.github.com/homebrew/) but is o
 
 ## Installation
 
-You can just get the [pex](https://raw.github.com/petere/pex/master/pex) program directly and install it wherever you want.
+You can just get the [pex](https://raw.githubusercontent.com/petere/pex/master/pex) program directly and install it wherever you want.
 
 The standard installation procedure is:
 
