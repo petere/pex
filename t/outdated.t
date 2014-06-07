@@ -3,7 +3,7 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 3
+plan 4
 
 pex init $test_repo_url
 
@@ -16,5 +16,8 @@ sed_in_place "s/foobar-1.0/foobar-1.1/;s/sha1:.*/sha1: $foobar11_sha1/" $tmpdir/
 ok_program 'pex outdated shows something' 0 'foobar' pex outdated
 
 ok_program 'pex outdated with arguments errors' 1 'pex: "outdated" takes no arguments' pex outdated foo bar
+
+pex -g "$tmpdir"/nowhere/pg_config outdated 2>/dev/null
+ok 'pex outdated without pg_config fails cleanly' test $? -ne 0
 
 cleanup

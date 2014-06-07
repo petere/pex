@@ -12,6 +12,8 @@ cleanup() {
 
 cd $tmpdir
 
+mkdir nowhere
+
 
 GIT_AUTHOR_NAME=Test
 GIT_AUTHOR_EMAIL=test@example.com

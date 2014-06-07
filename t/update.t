@@ -3,7 +3,7 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 4
+plan 5
 
 pex init $test_repo_url
 
@@ -28,5 +28,8 @@ ok 'pex update output' test "$(cat pex-update.out)" = 'Fast-forward
 barbar
 ==> Updated packages
 foobar'
+
+pex -g "$tmpdir"/nowhere/pg_config update foobar 2>/dev/null
+ok 'pex update without pg_config fails cleanly' test $? -ne 0
 
 cleanup

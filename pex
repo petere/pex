@@ -320,16 +320,19 @@ cmd_install() {
 
 
 cmd_list() {
+	local installed_dir
+
 	if [ $# -gt 0 ]; then
 		error '"list" takes no arguments'
 	fi
 
-	if [ ! -d "$(_installed_dir)" ]; then
+	installed_dir=$(_installed_dir)
+	if [ ! -d "$installed_dir" ]; then
 		return
 	fi
 
 	(
-		cd "$(_installed_dir)"
+		cd "$installed_dir"
 		ls -1 *.yaml 2>/dev/null | sed 's/\.yaml$//' | sort
 	)
 
@@ -337,17 +340,18 @@ cmd_list() {
 
 
 cmd_outdated() {
-	local installed_file pkg
+	local installed_dir installed_file pkg
 
 	if [ $# -gt 0 ]; then
 		error '"outdated" takes no arguments'
 	fi
 
-	if [ ! -d "$(_installed_dir)" ]; then
+	installed_dir=$(_installed_dir)
+	if [ ! -d "$installed_dir" ]; then
 		return
 	fi
 
-	for installed_file in $(find "$(_installed_dir)" -name "*.yaml" -print); do
+	for installed_file in $(find "$installed_dir" -name "*.yaml" -print); do
 		pkg=$(basename "$installed_file" .yaml)
 		if _is_outdated "$pkg"; then
 			echo "$pkg"
@@ -669,7 +673,7 @@ _download_target() {
 
 
 _info_one() {
-	local homepage package_file package_name pkg status url
+	local homepage package_file package_name pkg status url package_installed_file
 
 	assert $# -eq 1
 	pkg=$1
@@ -678,8 +682,9 @@ _info_one() {
 	package_name=$(basename "$package_file" .yaml)
 	homepage=$(parse_yaml_field "$package_file" homepage)
 	url=$(parse_yaml_field "$package_file" url)
+	package_installed_file="$(_installed_dir)/$package_name.yaml"
 
-	if [ ! -e "$(_installed_dir)/$package_name.yaml" ]; then
+	if [ ! -e "$package_installed_file" ]; then
 		status='not installed'
 	elif _is_outdated "$package_name"; then
 		status='outdated'
@@ -695,7 +700,7 @@ _info_one() {
 
 
 _install_one() {
-	local allow_upgrade package_file pkg target if_not_exists
+	local allow_upgrade package_file pkg target if_not_exists installed_dir
 
 	assert $# -eq 3
 	pkg=$1
@@ -704,7 +709,8 @@ _install_one() {
 
 	package_file=$(_package_file "$pkg")
 
-	if [ -e "$(_installed_dir)/$(basename "$package_file")" ] && ! $allow_upgrade; then
+	installed_dir=$(_installed_dir)
+	if [ -e "$installed_dir/$(basename "$package_file")" ] && ! $allow_upgrade; then
 		if $if_not_exists; then
 			exit 0
 		fi
@@ -739,8 +745,8 @@ _install_one() {
 		$sudo "$gnumake" install USE_PGXS=1 PG_CONFIG="$pg_config" || exit
 	) || exit
 
-	$sudo mkdir -p "$(_installed_dir)"
-	$sudo cp "$package_file" "$(_installed_dir)/"
+	$sudo mkdir -p "$installed_dir"
+	$sudo cp "$package_file" "$installed_dir/"
 
 	output "Package $pkg installed successfully"
 }
@@ -774,7 +780,7 @@ _sha1() {
 
 
 _upgrade_one() {
-	local installed_sha1 new_sha1 package_file package_name pkg
+	local installed_sha1 new_sha1 package_file package_name pkg installed_dir
 
 	assert $# -eq 1
 	pkg="$1"
@@ -782,11 +788,12 @@ _upgrade_one() {
 	package_file=$(_package_file "$pkg")
 	package_name=$(basename "$package_file" .yaml)
 
-	if [ ! -e "$(_installed_dir)/$package_name.yaml" ]; then
+	installed_dir=$(_installed_dir)
+	if [ ! -e "$installed_dir/$package_name.yaml" ]; then
 		error "package \"$pkg\" is not installed"
 	fi
 
-	installed_sha1=$(parse_yaml_field "$(_installed_dir)/$package_name.yaml" sha1)
+	installed_sha1=$(parse_yaml_field "$installed_dir/$package_name.yaml" sha1)
 	new_sha1=$(parse_yaml_field "$package_file" sha1)
 
 	if [ "$installed_sha1" = "$new_sha1" ]; then

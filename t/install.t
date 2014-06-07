@@ -3,9 +3,12 @@
 . ./t/libtap.sh
 . ./t/fixtures.sh
 
-plan 15
+plan 16
 
 ok 'pex init succeeds' pex init $test_repo_url
+
+pex -g "$tmpdir"/nowhere/pg_config install foobar 2>/dev/null
+ok 'pex install without pg_config fails cleanly' test $? -ne 0
 
 ok_program 'no package is listed as installed' 0 '' pex list
 
