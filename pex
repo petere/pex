@@ -910,6 +910,10 @@ psql() {
 }
 
 
+if [ $# -eq 0 ]; then
+	error "usage: pex COMMAND [PACKAGE] (try \" --help\")"
+fi
+
 case $1 in
 	--help|-\?)
 		echo "$usage"; exit 0;;
