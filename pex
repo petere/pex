@@ -394,13 +394,13 @@ cmd_rpmbuild() {
 
 	package_file=$(_package_file "$pkg")
 	homepage=$(parse_yaml_field "$package_file" homepage)
-        package_version=$(_package_version "$pkg")
+	package_version=$(_package_version "$pkg")
 
 	target=$(_fetch_one "$pkg")
 	target_basename=$(basename $target)
 
 	rm -rf "$work_dir/$pkg/rpmbuild"
-        mkdir -p "$work_dir/$pkg/rpmbuild"
+	mkdir -p "$work_dir/$pkg/rpmbuild"
 
 	cat <<EOF >$work_dir/$pkg/rpmbuild/$pkg.spec
 Name:           $pgrpmname-$pkg
@@ -861,7 +861,7 @@ unpack() {
 	file=$1
 	ext=$(canonical_archive_extension "$file")
 
-        # FIXME: check directory structure
+	# FIXME: check directory structure
 	case $ext in
 		zip)
 			unzip "$file";;
