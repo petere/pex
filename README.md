@@ -20,6 +20,19 @@ Pex has been influenced by [Homebrew](http://mxcl.github.com/homebrew/) but is o
 
 [![Build Status](https://secure.travis-ci.org/petere/pex.png)](http://travis-ci.org/petere/pex)
 
+## Why Pex
+
+There are many things to like:
+
+- Light-weight: only trivial run-time dependencies
+- Independent: doesn't matter where packages are hosted
+- Curated: no obsolete, unmaintained, immature, or broken packages
+- Trackable: control when packages change and know where they came from
+- Tested: all package downloads are automatically tested
+- Flexible: supports many installation layouts, can build Debs and RPMs
+- Extensible: fork and add your own in-house packages, no infrastructure required
+- Secure: everything is linked together by cryptographic hashes
+
 ## Installation
 
 You can just get the [pex](https://raw.githubusercontent.com/petere/pex/master/pex) program directly and install it wherever you want.
