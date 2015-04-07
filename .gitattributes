@@ -1,0 +1,2 @@
+pex		whitespace=indent-with-non-tab
+pex.1		whitespace=tab-in-indent
