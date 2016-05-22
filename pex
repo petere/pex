@@ -738,7 +738,8 @@ _install_one() {
 				--bindir=$("$pg_config" --bindir) \
 				--includedir=$("$pg_config" --includedir) \
 				--libdir=$("$pg_config" --libdir) \
-				--with-pgconfig=$("$pg_config" --bindir)/pg_config || exit
+				--with-pgconfig=$("$pg_config" --bindir)/pg_config \
+				PG_CONFIG="$pg_config" || exit
 		fi
 		"$gnumake" all USE_PGXS=1 PG_CONFIG="$pg_config" || exit
 		output "Installing $pkg"
