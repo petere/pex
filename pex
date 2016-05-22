@@ -24,7 +24,7 @@ Usage:
 "
 
 PEX_HOMEPAGE='https://github.com/petere/pex'
-PEX_DEFAULT_REMOTE='git://github.com/petere/pex-packages.git'
+PEX_DEFAULT_REMOTE='https://github.com/petere/pex-packages.git'
 
 set -eu
 
